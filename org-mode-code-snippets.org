@@ -1,0 +1,604 @@
+* Code Snippets
+** =org-sbe=
+*** =ob-table.el= example from Commentary Section - *Fixed* - *Works*
+   
+   *Hint:* Execute ~defun fibbd (n)~ block *before* evaluating table function.
+
+
+   #+begin_src emacs-lisp :results silent
+   (defun fibbd (n) (if (< n 2) 1 (+ (fibbd (- n 1)) (fibbd (- n 2)))))
+   #+end_src
+
+
+   #+name: fibbd
+   #+begin_src emacs-lisp :var n=2 :results value
+   (fibbd n)
+   #+end_src
+
+
+   | original | fibbd |
+   |----------+-------|
+   |        0 |     1 |
+   |        1 |     1 |
+   |        2 |     2 |
+   |        3 |     3 |
+   |        4 |     5 |
+   |        5 |     8 |
+   |        6 |    13 |
+   |        7 |    21 |
+   |        8 |    34 |
+   |        9 |    55 |
+   #+TBLFM: $2='(org-sbe fibbd (n $1))
+
+Note: Updated ='fibbd= to =fibbd= in example which *fixed #ERROR* 
+
+***  force interpretation of a cell's value as a string 
+
+#+name: get-ip-address
+#+header: :var name=""
+#+begin_src ruby  :results value 
+  require 'resolv' 
+
+  ip_address = ""
+  ip_address = Resolv.getaddress(name) rescue "" unless name.empty?
+  ip_address
+#+end_src
+
+#+RESULTS: get-ip-address
+
+    
+| Hostname      |   IP-Address |
+|---------------+--------------|
+| www.apple.com | 23.204.86.43 |
+#+TBLFM: $2='(org-sbe get-ip-address (name $$1))
+
+
+
+** org-mode table functions =TBLFM=
+*** Example using =remote= to create clickable links from data in another table   
+
+#+name: example-hosts-table
+| hostname |  ip address |
+|----------+-------------|
+| HostA    | 192.168.0.1 |
+| HostB    | 192.168.0.2 |
+| HostC    | 192.168.0.3 |
+| HostD    | 192.168.0.4 |
+| HostE    | 192.168.0.5 |
+| HostF    | 192.168.0.6 |
+
+#+name: example-scp-urls-table
+| *Type* | *URL*                               |
+|--------+-------------------------------------|
+| scp    | file:/scp:username@192.168.0.1:/dir |
+| scp    | file:/scp:username@192.168.0.2:/dir |
+| scp    | file:/scp:username@192.168.0.3:/dir |
+| scp    | file:/scp:username@192.168.0.4:/dir |
+| scp    | file:/scp:username@192.168.0.5:/dir |
+| scp    | file:/scp:username@192.168.0.6:/dir |
+#+TBLFM: $1=(scp)::$2='(concat "file:/" $1 ":username@" remote(example-hosts-table, @@#$2) ":" "/dir")
+
+#+name: example-xterm-urls-table
+| *Type* | *URL*                                                                         |
+|--------+-------------------------------------------------------------------------------|
+| xterm  | [[shell:xterm -name 'username@192.168.0.1' -e ssh -X username@192.168.0.1 &]] |
+| xterm  | [[shell:xterm -name 'username@192.168.0.2' -e ssh -X username@192.168.0.2 &]] |
+| xterm  | [[shell:xterm -name 'username@192.168.0.3' -e ssh -X username@192.168.0.3 &]] |
+| xterm  | [[shell:xterm -name 'username@192.168.0.4' -e ssh -X username@192.168.0.4 &]] |
+| xterm  | [[shell:xterm -name 'username@192.168.0.5' -e ssh -X username@192.168.0.5 &]] |
+| xterm  | [[shell:xterm -name 'username@192.168.0.6' -e ssh -X username@192.168.0.6 &]] |
+#+TBLFM: $1=(xterm)::$2='(concat "[[" "shell:" $1 " -name 'username@" remote(example-hosts-table, @@#$2) "'" " -e ssh -X username@" remote(example-hosts-table, @@#$2) " &" "]]")
+
+- Simple ~remote()~ example for tables
+  #+BEGIN_SRC org
+  ,#+NAME: the-table
+  | A | B | C |
+  |---+---+---|
+  | 1 | 2 | 3 |
+  | 4 | 5 | 6 |
+  | 7 | 8 | 9 |
+  
+  
+  | A | B | C |
+  |---+---+---|
+  | 1 | 2 | 3 |
+  | 4 | 5 | 6 |
+  | 7 | 8 | 9 |
+  ,#+TBLFM: @<$<..@>$>=remote(the-table, @@#$$#);LE
+  #+END_SRC
+
+** Code blocks inside Drawers
+
+#+NAME: example-configs-table
+| *Configuration Name* | *Configuration Value*      |
+|----------------------+----------------------------|
+| example-named-block1 | example-named-block1-value |
+| example-named-block2 | example-named-block2-value |
+| example-named-block3 | example-named-block3-value |
+| example-named-block4 | example-named-block4-value |
+| example-named-block5 | example-named-block5-value |
+
+#+NAME: example-make-named-blocks
+#+HEADER: :var data=example-configs-table()
+#+HEADER: :results silent output 
+#+begin_src ruby
+  for d in data
+    puts "#+NAME: #{d[0]}\n#+BEGIN_SRC css\n#{d[1]}\n#+END_SRC\n\n#+CALL: #{d[0]}()\n\n"
+  end
+#+end_src
+
+#+NAME: example-named-blocks
+#+CALL: example-make-named-blocks() :results drawer value 
+
+#+RESULTS: example-named-blocks
+:RESULTS:
+#+NAME: example-named-block1
+#+BEGIN_SRC css
+example-named-block1-value
+#+END_SRC
+
+#+CALL: example-named-block1()
+
+#+RESULTS:
+: example-named-block1-value
+
+#+NAME: example-named-block2
+#+BEGIN_SRC css
+example-named-block2-value
+#+END_SRC
+
+#+CALL: example-named-block2()
+
+#+RESULTS:
+: example-named-block2-value
+
+#+NAME: example-named-block3
+#+BEGIN_SRC css
+example-named-block3-value
+#+END_SRC
+
+#+CALL: example-named-block3()
+
+#+RESULTS:
+: example-named-block3-value
+
+#+NAME: example-named-block4
+#+BEGIN_SRC css
+example-named-block4-value
+#+END_SRC
+
+#+CALL: example-named-block4()
+
+#+RESULTS:
+: example-named-block4-value
+
+#+NAME: example-named-block5
+#+BEGIN_SRC css
+example-named-block5-value
+#+END_SRC
+
+#+CALL: example-named-block5()
+
+#+RESULTS:
+: example-named-block5-value
+
+:END:
+
+*** Using =noweb= Syntax with Code blocks inside Drawers
+
+#+NAME: example-configs-noweb-table
+| *Configuration Name* | *Configuration Value*      |
+|----------------------+----------------------------|
+| ROOT_DIR             | /root-dir                  |
+| GRANDPARENT_DIR      | <<ROOT_DIR>>/grandparent   |
+| PARENT_DIR           | <<GRANDPARENT_DIR>>/parent |
+| CHILD_DIR            | <<PARENT_DIR>>/child       |
+
+
+#+NAME: example-make-named-blocks-noweb
+#+HEADER: :var data=example-configs-noweb-table()
+#+HEADER: :results silent output 
+#+begin_src ruby
+  for d in data
+    puts "#+NAME: #{d[0]}\n#+BEGIN_SRC css :noweb yes\n#{d[1]}\n#+END_SRC\n\n#+CALL: #{d[0]}()\n\n"
+  end
+#+end_src
+
+#+NAME: example-named-blocks-noweb
+#+CALL: example-make-named-blocks-noweb() :results drawer value 
+
+#+RESULTS: example-named-blocks-noweb
+:RESULTS:
+#+NAME: ROOT_DIR
+#+BEGIN_SRC css :noweb yes :exports both
+/root-dir
+#+END_SRC
+
+#+CALL: ROOT_DIR()
+
+#+RESULTS:
+: /root-dir
+
+#+NAME: GRANDPARENT_DIR
+#+BEGIN_SRC css :noweb yes :exports both
+<<ROOT_DIR>>/grandparent
+#+END_SRC
+
+#+CALL: GRANDPARENT_DIR()
+
+#+RESULTS:
+: /root-dir/grandparent
+
+#+NAME: PARENT_DIR
+#+BEGIN_SRC css :noweb yes :exports both
+<<GRANDPARENT_DIR>>/parent
+#+END_SRC
+
+#+CALL: PARENT_DIR()
+
+#+RESULTS:
+: /root-dir/grandparent/parent
+
+#+NAME: CHILD_DIR
+#+BEGIN_SRC css :noweb yes :exports both
+<<PARENT_DIR>>/child
+#+END_SRC
+
+#+CALL: CHILD_DIR() 
+
+#+RESULTS:
+: /root-dir/grandparent/parent/child
+
+:END:
+
+
+** Tangling formatted org-tables into files or source code
+
+#+BEGIN_SRC org
+
+  ,#+NAME: example-configs-table-fix1
+  | *Configuration Name* | *Configuration Value*      |
+  |----------------------+----------------------------|
+  | example-named-block1 | example-named-block1-value |
+  | example-named-block2 | example-named-block2-value |
+  | example-named-block3 | example-named-block3-value |
+  | example-named-block4 | example-named-block4-value |
+  | example-named-block5 | example-named-block5-value |
+
+  ,#+NAME: example-table-into-org-block-fix1
+  ,#+BEGIN_SRC elisp :var data=example-configs-table-fix1 :colnames yes :results table org replace 
+    data
+  ,#+END_SRC
+
+  ,#+NAME: example-table-into-org-block-renamed-fix1
+  ,#+RESULTS: example-table-into-org-block-fix1
+  ,#+BEGIN_SRC org
+  | *Configuration Name* | *Configuration Value*      |
+  |----------------------+----------------------------|
+  | example-named-block1 | example-named-block1-value |
+  | example-named-block2 | example-named-block2-value |
+  | example-named-block3 | example-named-block3-value |
+  | example-named-block4 | example-named-block4-value |
+  | example-named-block5 | example-named-block5-value |
+  ,#+END_SRC
+
+  ,#+NAME: example-table-into-org-block-renamed-noweb-fix1
+  ,#+BEGIN_SRC css :noweb yes 
+    <<example-table-into-org-block-renamed-fix1()>>
+  ,#+END_SRC
+
+  ,#+RESULTS: example-table-into-org-block-renamed-noweb-fix1
+  : | *Configuration Name* | *Configuration Value*      |
+  : |----------------------+----------------------------|
+  : | example-named-block1 | example-named-block1-value |
+  : | example-named-block2 | example-named-block2-value |
+  : | example-named-block3 | example-named-block3-value |
+  : | example-named-block4 | example-named-block4-value |
+  : | example-named-block5 | example-named-block5-value |
+
+#+END_SRC
+
+*Note:* Renaming trick also works when your having trouble passing =#+RESULTS:= to another =src block=.
+
+* Link to Code Block within Org or PDF
+
+#+BEGIN_LaTeX
+\hypertarget{some-source-code}{} 
+#+END_LaTeX
+#+NAME: some-source-code
+#+BEGIN_SRC python :eval never 
+  for i in 1:10:
+      print i
+#+END_SRC
+
+* Method 1 for Org File
+
+[[file:::some-source-code][some-source-code]]
+
+* Method 2 for Org File
+
+[[file:::/#\+name: +some-source-code/][regex to some-source-code]]
+
+* Method 3 for PDF
+
+#+BEGIN_SRC latex
+  See \hyperlink{some-source-code}{some-source-code}.
+#+END_SRC
+
+
+* Example for assoc-string
+
+#+NAME: get-country-or-area-name
+#+HEADER: :var iso-alpha2-code="ca"
+#+HEADER: :var dc-list='((US . "United States of America") (CA . "Canada") (BR . "Brazil"))
+#+BEGIN_SRC elisp
+  (let ((s (upcase (substring iso-alpha2-code 0 2))))
+    (cdr (assoc-string s dc-list)))
+#+END_SRC
+
+| ISO Alpha 2 Code | Country or Area Name     |
+|------------------+--------------------------|
+| BR               | Brazil                   |
+| CA               | Canada                   |
+| US               | United States of America |
+#+TBLFM: $2='(org-sbe get-country-or-area-name (iso-alpha2-code $$1))
+
+
+* Displaying Code and Results side-by-side in Github
+#+NAME: my-code
+#+BEGIN_SRC elisp :exports none 
+(+ 1 1)
+#+END_SRC
+
+#+NAME: my-other-code
+#+BEGIN_SRC elisp :exports none 
+(/ 4 (* 2 2))
+#+END_SRC
+
+
+#+BEGIN_SRC org :results drawer replace :noweb yes :exports results 
+
+  ,#+NAME: my-code-with-answer
+  ,#+BEGIN_SRC elisp  :exports code 
+  <<my-code>> ;=> <<my-code()>>
+  <<my-other-code>> ;=> <<my-other-code()>>
+  ,#+END_SRC
+
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+
+#+NAME: my-code-with-answer
+#+BEGIN_SRC elisp  :exports code 
+(+ 1 1) ;=> 2
+(/ 4 (* 2 2)) ;=> 1
+#+END_SRC
+
+:END:
+
+* Code Block Template to Pretty Print JSON
+** Ruby Code
+
+#+BEGIN_SRC ruby :results verbatim replace :exports both
+  require 'json'
+
+  some_data = %q({"type":"graph"})
+
+  JSON.pretty_generate(JSON.parse(some_data))
+
+#+END_SRC
+
+#+RESULTS:
+: {
+:   "type": "graph"
+: }
+
+** elisp code
+
+#+NAME: pp-json
+#+BEGIN_SRC elisp :var data="{}" :exports code
+  (require 'json)
+  (let 'myjson
+    (with-temp-buffer
+	(insert data)
+	(json-pretty-print-buffer)
+	(setq myjson (buffer-string)))
+   (format "%s" myjson)
+  )
+#+END_SRC
+
+#+RESULTS: pp-json
+: null
+
+
+#+BEGIN_SRC elisp :var data="{\"userId\": \"myaccount\",\"roles\": [\"Role1\"]}" :post pp-json(data=*this*) :exports results
+  data
+#+END_SRC
+
+#+RESULTS:
+: {
+:   "roles": [
+:     "Role1"
+:   ],
+:   "userId": "myaccount"
+: }
+
+
+* ~ob-ref~ Examples
+
+#+BEGIN_EXAMPLE
+  ;; Functions for referencing data from the header arguments of a
+  ;; org-babel block.  The syntax of such a reference should be
+
+  ;;   #+VAR: variable-name=file:resource-id
+
+  ;; - variable-name :: the name of the variable to which the value
+  ;;                    will be assigned
+
+  ;; - file :: path to the file containing the resource, or omitted if
+  ;;           resource is in the current file
+
+  ;; - resource-id :: the id or name of the resource
+
+  ;; So an example of a simple src block referencing table data in the
+  ;; same file would be
+
+  ;;  #+NAME: sandbox
+  ;;  | 1 |         2 | 3 |
+  ;;  | 4 | org-babel | 6 |
+  ;;
+  ;;  #+begin_src emacs-lisp :var table=sandbox
+  ;;    (message table)
+  ;;  #+end_src
+
+#+END_EXAMPLE
+
+** Table in same file
+#+NAME: sandbox
+| 1 |         2 | 3 |
+| 4 | org-babel | 6 |
+
+#+begin_src emacs-lisp :var table=sandbox
+  table
+#+end_src
+
+#+RESULTS:
+| 1 |         2 | 3 |
+| 4 | org-babel | 6 |
+
+** Table in external file
+
+#+BEGIN_SRC org :file junk40a.org :results file replace 
+
+
+  ,#+NAME: table1
+  | Column1 | Column2 |
+  |---------+---------|
+  |       2 | A       |
+  |       3 | B       |
+  |       4 | C       |
+  |       5 | D       |
+  |       6 | E       |
+  ,#+TBLFM: $1=@#
+
+#+END_SRC
+
+#+RESULTS:
+[[file:junk40a.org]]
+
+*Note: Ingest the org file first with ~C-c C-v i~*
+
+#+begin_src emacs-lisp :var table=junk40a.org:table1 :exports both
+  table
+#+end_src
+
+#+RESULTS:
+| 2 | A |
+| 3 | B |
+| 4 | C |
+| 5 | D |
+| 6 | E |
+
+* ~header-args~ property Examples
+
+** Step 1
+:PROPERTIES:
+:header-args: :noweb-ref step1-code  :eval never 
+:END:
+1. Change dir
+
+   #+BEGIN_SRC shell
+     cd /some/directory
+   #+END_SRC
+
+2. Extract Archive
+   
+   #+BEGIN_SRC shell
+     unzip -d /path/to/dir archive.zip
+   #+END_SRC
+
+** Step 2
+:PROPERTIES:
+:header-args: :noweb-ref step2-code :exports both :var DATA="Hey Terra"
+:END:
+
+1. Display Message
+
+   #+BEGIN_SRC shell
+     echo "Message: $DATA!"
+   #+END_SRC
+
+     #+RESULTS:
+     : Message: Hey Terra!
+
+** Scripts
+
+*** Step 1 Script
+:PROPERTIES:
+:header-args: :shebang "#!/usr/bin/env bash" :noweb yes :tangle junk40-step1.sh  :eval never
+:END:
+
+ #+BEGIN_SRC shell 
+   # Step 1 - Code Begin
+   <<step1-code>>
+   # Step 1 - Code End
+   exit
+ #+END_SRC
+
+*** Step 2 Script
+:PROPERTIES:
+:header-args:shell: :shebang "#!/usr/bin/env bash" :noweb yes :tangle junk40-step2.sh  :var DATA="Hi Everyone" 
+:END:
+- Exported Script Code
+   
+  #+NAME: step2-script
+  #+BEGIN_SRC shell :exports both :var MORE_DATA="Other Stuff"
+    # Step 2 - Code Begin
+    <<step2-code>>
+    # Step 2 - Code End
+    exit
+  #+END_SRC
+
+- Exported Script Output:
+
+  #+RESULTS: step2-script
+  : Message: Hi Everyone!
+
+- Tangled Script Code
+
+  : #+INCLUDE: junk40-step2.sh src
+
+  #+BEGIN_SRC
+    #!/usr/bin/env bash
+    DATA='Hi Everyone'
+    MORE_DATA='Other Stuff'
+    # Step 2 - Code Begin
+    echo "Message: $DATA!"
+    # Step 2 - Code End
+    exit
+  #+END_SRC
+
+
+** Get Filename from URL in another Table Cell using ~url-file-nondirectory~ and ~org-lookup-first~
+
+    #+NAME: chef-install-media-info
+    | Property-Name | Property-Value                                                                                           |
+    |---------------+----------------------------------------------------------------------------------------------------------|
+    | OS            | rhel6                                                                                                    |
+    | Architecture  | x86_64                                                                                                   |
+    | SHA256        | b6f2178f77838f12b33be8216e10363d53bbc96ebb3cbeb86af45a06285ff72b                                         |
+    | URL           | https://packages.chef.io/files/stable/chef-server/12.11.1/el/6/chef-server-core-12.11.1-1.el6.x86_64.rpm |
+    | Filename      | chef-server-core-12.11.1-1.el6.x86_64.rpm                                                                |
+    |---------------+----------------------------------------------------------------------------------------------------------|
+    #+TBLFM: @6$2='(url-file-nondirectory (format "%s" (org-lookup-first "URL" '(@I$1..@II$1) '(@I$2..@II$2) 'string= )));L
+
+** Table field variables and calc - =WIP=
+
+|   | Runde |    0 |    1 |    2 | Resultat | %          |
+|---+-------+------+------+------+----------+------------|
+| ! |       |   c0 |   c1 |   c2 |          |            |
+| _ | name  |      |      |      | result   | percentage |
+| # | Alice |    1 |    1 |    0 | 2        | 66.67      |
+#+TBLFM: $result='(reduce '+ (vector $c0..$c2));N::$percentage='(calc-eval (format "(%i/%i)*100" $result (length (vector $c0..$c2))));%2.2f

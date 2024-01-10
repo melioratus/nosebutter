@@ -1,0 +1,608 @@
+* org-mode tips
+** Lists
+*** Start ordered lists with new number - /Note: Does not render in org-ruby yet/
+
+#+BEGIN_QUOTE
+Add ~[@#]~ at beginning of list item title. If list title contains checkbox, place before the checkbox.
+#+END_QUOTE
+
+1. [@20] Start this at 20
+1. [@30] [ ] Start this item at 30   
+
+** weaving
+   Add =:noweb yes= header to =org= code blocks to build and nest more complex documents.
+** tangling
+   - Tangle all blocks in org buffer =C-c C-v C-t=
+
+   - Tangle only blocks under a specific tree
+     1. Open Tree in Indirect Buffer =C-c C-x b=
+     2. Tangle blocks the indirect buffer using =C-c C-v C-t=
+     
+   - Tangle a single code block
+     1. Place cursor within block
+     2. Tangle with =C-u C-c C-v t=
+*** How to make clickable links in source code comments back to org src blocks
+
+Below is an example of tangled [[file:example1-hello-messages.py][code]] that includes links back to sections of parent literate program.
+
+#+BEGIN_SRC org :results drawer replace
+
+
+  ,** Example 1
+  :PROPERTIES:
+  :ID:       8F3062C1-D640-4FA8-AE33-B2954BB793BC
+  :END:
+
+  ,#+BEGIN_SRC python :noweb yes :comments noweb :tangle example1-hello-messages.py 
+
+    <<english-message>>
+
+    <<french-message>>
+
+    <<german-message>>
+
+  ,#+END_SRC
+
+  ,** Hello World
+  :PROPERTIES:
+  :ID:       9A8338D4-5136-47AC-8A49-41F70E333E5B
+  :END:
+
+  ,#+NAME: english-message
+  ,#+BEGIN_SRC python :eval never
+       print 'Hello {0}\n'.format('World')
+  ,#+END_SRC
+
+  ,** Bonjour le monde
+  :PROPERTIES:
+  :ID:       65D88F05-9044-4B91-8DBE-EB5D9B47097A
+  :END:
+
+  ,#+NAME: french-message
+  ,#+BEGIN_SRC python :eval never
+       print 'Bonjour {0}\n'.format('le monde')
+  ,#+END_SRC
+
+  ,** Hallo Welt
+  :PROPERTIES:
+  :ID:       AB79F7F9-D4C4-413E-91B9-FFAC65A559A7
+  :END:
+
+  ,#+NAME: german-message
+  ,#+BEGIN_SRC python :eval never
+       print 'Hallo {0}\n'.format('Welt')
+  ,#+END_SRC
+
+#+END_SRC
+
+*** Answers
+
+**** Try1
+
+1. Install =orglink= package by Jonas Bernoulli.
+2. Enable =orglink-mode= for buffer of tangled file, e.g. =M-x orglink-mode=.
+   
+** Add 2 columns of Hex Numbers and Display
+
+#+BEGIN_SRC org
+| 0x10 | 0x0 |  16 | 10 |
+| 0x20 | 0x1 |  33 | 21 |
+| 0x30 | 0x2 |  50 | 32 |
+| 0xf0 | 0xf | 255 | FF |
+#+TBLFM: $3='(+ (string-to-number (substring $2 2) 16) (string-to-number (substring $1 2) 16))::$4='(format "%X" (string-to-number $3))
+#+END_SRC
+
+** Prompt for =:var= variables dynamically in =minibuffer=
+*** Example: Prompt for password
+    - elisp code
+       #+name: ex1-prompt-for-password
+       #+begin_src elisp :exports both
+        (read-passwd "Password: ")
+       #+end_src
+    - results
+       #+RESULTS: ex1-prompt-for-password
+       : myPassword
+
+*** Example: Prompt for unsername
+    - elisp code
+      #+name: ex1-prompt-for-username
+      #+begin_src elisp :exports both
+       (read-string "Username: ")
+      #+end_src
+    - results
+      #+RESULTS: ex1-prompt-for-username
+      : myUsername
+
+*** Implementation Example - SharePoint RESTful Call using =curl= Command
+
+   #+BEGIN_SRC org
+     ,#+NAME: ex2-rest-sp-curl
+     ,#+HEADER: :wrap EXAMPLE
+     ,#+HEADER: :results replace output 
+     ,#+HEADER: :var password=(read-passwd "Password: ")
+     ,#+HEADER: :var username=(read-string "Username: ")
+     ,#+begin_src sh
+       curl --ntlm -u "$username":"$password" -H "Accept: application/json;odata=verbose" "http://sharepoint.example.org/the/path/_api/web/Lists/getbytitle('MyTitle')/items?"
+     ,#+end_src
+   #+END_SRC
+   
+   To update list need to pass =X-RequestDigest: FormDigestValue= to Get =FormDigestValue= submit =POST= to =/_api/contextinfo= with no data. See example curl command below:
+   #+BEGIN_SRC shell :results replace output  :var username=(read-string "Username: ") :var password=(read-passwd "Password: ") :var site_hostname="site.hostname" :var site_path="path/to/site" 
+     curl -v -v -v --ntlm -u "$username":"$password" -H "content-type:application/json;odata=verbose" -H "accept:application/json;odata=verbose" -d "" -X POST "http://$site_hostname/$site_path/_api/contextinfo"
+    #+END_SRC
+
+To create item then pass =X-RequestDigest= as a header
+
+    #+BEGIN_SRC shell :results replace output  :var username=(read-string "Username: ") :var password=(read-passwd "Password: ") :var site_hostname="site.hostname" :var site_path="path/to/site" :var list_guid="ba393f35-6d80-4e8d-b297-3c7145c48874" :var list_item="Added by curl in code block 1"  :var list_type="SP.Data.TestListItem"
+    curl -v -v -v --ntlm -u "$username":"$password" -d "{\"Title\":\"$list_tem\",\"__metadata\":{\"type\":\"$list_type\"}}" -H "content-type:application/json;odata=verbose" -H "accept:application/json;odata=verbose" -H "X-RequestDigest: 0xE7199A5918E328B0BBD11677CA7DB56F8A80D65F45B2B8E449BED751A45877F46E4A8D30AC411C05B3C49F564218E37C347C0BFF98D9862FACCC1005EF368AA2,30 Mar 2016 19:17:21 -0000"  -X POST "http://sharepoint.example.org/tops/iops/appeng/_api/Web/Lists(guid'$list_guid')/Items"
+    #+END_SRC
+
+#+BEGIN_QUOTE
+ *Useful Reference:* http://stackoverflow.com/questions/3851445/ruby-how-do-i-send-a-json-post-request-using-curb
+#+END_QUOTE
+
+** Embedding org-mode table data as perl code using a python code block and =:noweb=
+
+This technique will allow you to place the table data into your perl code so that the code is more readable.
+
+- Implementation Example
+#+BEGIN_SRC org
+
+  ,#+NAME: data-table
+  | Property-Name | Property-Value |
+  |---------------+----------------|
+  | P1_STRING1    | P1_VALUE1      |
+  | P2_STRING2    | 1234           |
+
+  ,#+NAME: convert-data-to-perl-code
+  ,#+BEGIN_SRC python :var data=data-table :results verbatim code replace :session :exports none 
+    data
+  ,#+END_SRC
+
+  ,#+RESULTS: convert-data-to-perl-code
+  ,#+BEGIN_SRC python
+  [['P1_STRING1', 'P1_VALUE1'], ['P2_STRING2', 1234]]
+  ,#+END_SRC
+
+  ,#+NAME: data-table-perl-code
+  ,#+BEGIN_SRC perl :noweb yes :eval never :exports code 
+  my @test_data = <<convert-data-to-perl-code()>>;
+  ,#+END_SRC
+#+END_SRC
+- Output Results
+#+RESULTS: 
+:RESULTS:
+
+
+#+NAME: data-table
+| Property-Name | Property-Value |
+|---------------+----------------|
+| P1_STRING1    | P1_VALUE1      |
+| P2_STRING2    | 1234           |
+
+#+NAME: data-table-perl-code
+#+BEGIN_SRC perl
+  my @test_data = [['P1_STRING1', 'P1_VALUE1'], ['P2_STRING2', 1234]];
+#+END_SRC
+:END:
+
+
+** Caveat: Passing tables with =hline= to code blocks can be confusing.
+*** Example 1
+**** Table with one =hline= on 2nd row
+
+#+NAME: ex1-table-one-hline
+| Column_Header |
+|---------------|
+| Value 0       |
+| Value 1       |
+| Value 2       |
+| Value 3       |
+
+***** Default behavior
+
+#+NAME: ex1-table-one-hline-default
+#+begin_src elisp :var data=ex1-table-one-hline :exports both
+  data
+#+end_src
+
+#+RESULTS: ex1-table-one-hline-default
+| Value 0 |
+| Value 1 |
+| Value 2 |
+| Value 3 |
+
+***** Added =:colnames yes=
+#+NAME: ex1-table-one-hline-added-colnames-yes
+#+begin_src elisp :var data=ex1-table-one-hline :colnames yes  
+  data
+#+end_src
+
+#+RESULTS: ex1-table-one-hline-added-colnames-yes
+| Column_Header |
+|---------------|
+| Value 0       |
+| Value 1       |
+| Value 2       |
+| Value 3       |
+
+**** Table with =hline= on 2nd row and last row
+
+#+NAME: ex1-table-two-hline
+| Column_Header |
+|---------------|
+| Value 0       |
+| Value 1       |
+| Value 2       |
+| Value 3       |
+|---------------|
+
+***** Default behavior
+
+#+NAME: ex1-table-two-hline-default
+#+begin_src elisp :var data=ex1-table-two-hline  :exports both
+  data
+#+end_src
+
+#+RESULTS: ex1-table-two-hline-default
+| Column_Header |
+| Value 0       |
+| Value 1       |
+| Value 2       |
+| Value 3       |
+
+***** Added =:colnames yes=
+
+#+NAME: ex1-table-two-hline-added-colnames-yes
+#+begin_src elisp :var data=ex1-table-two-hline :colnames yes  :exports both
+  data
+#+end_src
+
+#+RESULTS: ex1-table-two-hline-added-colnames-yes
+| Column_Header |
+|---------------|
+| Value 0       |
+| Value 1       |
+| Value 2       |
+| Value 3       |
+
+***** Added =hlines yes=
+
+#+NAME: ex1-table-two-hline-added-hlines-yes
+#+begin_src elisp :var data=ex1-table-two-hline :hlines yes   :exports both
+  data
+#+end_src
+
+#+RESULTS: ex1-table-two-hline-added-hlines-yes
+| Column_Header |
+|---------------|
+| Value 0       |
+| Value 1       |
+| Value 2       |
+| Value 3       |
+|---------------|
+
+***** Added both =:colnames yes= and =hlines yes=
+
+#+NAME: ex1-table-two-hline-added-both-colnames-hlines-yes
+#+begin_src elisp :var data=ex1-table-two-hline :colnames yes :hlines yes   :exports both
+  data
+#+end_src
+
+#+RESULTS: ex1-table-two-hline-added-both-colnames-hlines-yes
+| Column_Header |
+|---------------|
+| Value 0       |
+| Value 1       |
+| Value 2       |
+| Value 3       |
+|---------------|
+
+** Troubleshooting
+*** Errors
+**** =org-element-headline-parser: Variable binding depth exceeds max-specpdl-size=
+The =Variable binding depth exceeds max-specpdl-size= error shows your code has recursion issue(s). 
+
+***** Example 1 - Named Block inserts into itself via =:noweb=
+
+Did a Copy & Paste and forgot to rename my code block. Didn't discover the recursion issue until I did =C-c= =C-v= =t= to tangle the script.
+
+#+BEGIN_EXAMPLE
+,#+name: max-specpdl-size-example1
+,#+header: :noweb yes  
+,#+header: :tangle /tmp/recursion-errors/max-specpdl-size-example1
+,#+begin_src sh :eval never 
+<<max-specpdl-size-example1>>
+,#+end_src
+
+,#+name: max-specpdl-size-example1
+,#+begin_src sh :eval never 
+echo "Did Copy/Paste and forgot to rename max-specpdl-size-example1 block"
+,#+end_src
+
+#+END_EXAMPLE
+
+** Indexable Variable Values Examples
+
+#+NAME: 3D
+#+BEGIN_SRC emacs-lisp :exports both
+  '( 
+    ( ;;3D[0,,]
+      ( ;;3D[0,0,]
+        1 ;;3D[0,0,0]
+        2 ;;3D[0,0,1]
+        3 ;;3D[0,0,2]
+      ) 
+      ( ;;3D[0,1,]
+        4 ;;3D[0,1,0]
+        5 ;;3D[0,1,1]
+        6 ;;3D[0,1,2]
+      ) 
+      ( ;;3D[0,2,]
+        7 ;;3D[0,2,0]
+        8 ;;3D[0,2,1]
+        9 ;;3D[0,2,2]
+      )
+    )
+    ( ;;3D[1,,]
+     ( ;;3D[1,0,]
+       10 ;;3D[1,0,0]
+       11 ;;3D[1,0,1]
+       12 ;;3D[1,0,2]
+     ) 
+     ( ;;3D[1,1,]
+       13 ;;3D[1,1,0]
+       14 ;;3D[1,1,1]
+       15  ;;3D[1,1,2]
+     ) 
+     ( ;;3D[1,2,]
+       16 ;;3D[1,2,0]
+       17 ;;3D[1,2,1]
+       18  ;;3D[1,2,2]
+     )
+    )
+   ( ;;3D[2,,]
+     ( ;;3D[2,0,]
+       19 ;;3D[2,0,0]
+       20 ;;3D[2,0,1]
+       21 ;;3D[2,0,2]
+     ) 
+     ( ;;3D[2,1,]
+       22 ;;3D[2,1,0]
+       23 ;;3D[2,1,1]
+       24 ;;3D[2,1,2]
+     ) 
+     ( ;;3D[2,2,]
+       25 ;;3D[2,2,0]
+       26 ;;3D[2,2,1]
+       27 ;;3D[2,2,2]
+     )
+   )
+  )
+#+END_SRC
+
+#+RESULTS: 3D
+| (1 2 3)    | (4 5 6)    | (7 8 9)    |
+| (10 11 12) | (13 14 15) | (16 17 18) |
+| (19 20 21) | (22 23 24) | (25 26 27) |
+
+#+BEGIN_SRC org
+  ,#+BEGIN_SRC emacs-lisp :var data=3D[1,,1]
+    data
+  ,#+END_SRC
+
+  ,#+RESULTS:
+  | 11 | 14 | 17 |
+
+  
+  ,#+BEGIN_SRC emacs-lisp :var data=3D[0,,1]
+    data
+  ,#+END_SRC
+
+  ,#+RESULTS:
+  | 2 | 5 | 8 |
+
+  ,#+BEGIN_SRC emacs-lisp :var data=3D[0,,0]
+    data
+  ,#+END_SRC
+
+  ,#+RESULTS:
+  | 1 | 4 | 7 |
+
+  ,#+BEGIN_SRC emacs-lisp :var data=3D[2,,0]
+    data
+  ,#+END_SRC
+
+  ,#+RESULTS:
+  | 19 | 22 | 25 |
+#+END_SRC
+
+
+* Calling Named Code Blocks from Command-line Examples
+
+#+BEGIN_SRC org :tangle call-named-code-block-examples.org
+
+  ,** Call Named Code Block Example Script
+
+
+  ,#+BEGIN_SRC shell :eval never :tangle call-named-code-block-examples.sh :shebang "#!/bin/sh"
+    # -*- mode: shell-script -*-
+    #
+    # Call named code block in org-mode file
+    #
+    DIR=`pwd`
+    FILE=$1
+    CODE_BLOCK=$2
+
+    emacs -Q --batch \
+	  --eval "
+    (progn
+      (require 'org)(require 'ob)(require 'ob-table)(setq org-confirm-babel-evaluate nil)
+      (mapc (lambda (file)
+	      (find-file (expand-file-name file \"$DIR\"))
+	      (let ((re-run (quote t))
+		    (results (quote \"ERROR: Did not call code block: $CODE_BLOCK\")))
+		(save-excursion
+		  (org-babel-goto-named-src-block \"$CODE_BLOCK\")
+		  (let ((info (org-babel-get-src-block-info 'light)))
+		    (when info
+		      (save-excursion
+			;; go to the results, if there aren't any then run the block
+			(goto-char (or (and (not re-run) (org-babel-where-is-src-block-result))
+				       (progn (org-babel-execute-src-block)
+					      (org-babel-where-is-src-block-result))))
+			(end-of-line 1)
+			(while (looking-at \"[\n\r\t\f ]\") (forward-char 1))
+			;; open the results
+			(if (looking-at org-bracket-link-regexp)
+			    ;; file results
+			    (org-open-at-point)
+			  (let ((r (org-babel-format-result
+				    (org-babel-read-result) (cdr (assq :sep (nth 2 info))))))
+			    (pop-to-buffer (get-buffer-create \"*Org-Babel Results*\"))
+			    (delete-region (point-min) (point-max))
+			    (insert r)
+			    (setq results (buffer-string))))
+			t)))
+		  t)
+		(princ (format \"%s\" results))
+		)
+
+	      (kill-buffer))
+	    '(\"$FILE\"))
+      )
+    "
+
+  ,#+END_SRC
+
+  ,*Note:* Tangle files first with ~C-c C-v C-t~
+
+  ,#+NAME: call-get-org-version
+  ,#+BEGIN_SRC shell
+    ./call-named-code-block-examples.sh ./call-named-code-block-examples.org "get-org-version" 2>/dev/null
+  ,#+END_SRC
+
+
+  ,#+NAME: call-get-emacs-version
+  ,#+BEGIN_SRC shell
+    ./call-named-code-block-examples.sh ./call-named-code-block-examples.org "get-emacs-version" 2>/dev/null
+  ,#+END_SRC
+
+  ,** Named Code Block Examples
+
+  ,#+NAME: get-org-version
+  ,#+BEGIN_SRC elisp 
+  (format "org-mode version: %s" (org-version))
+  ,#+END_SRC
+
+  ,#+RESULTS: get-org-version
+  : org-mode version: 9.0
+
+  ,#+NAME: get-emacs-version
+  ,#+BEGIN_SRC elisp 
+  (format "emacs version: %s" (substring (version) 10 16))
+  ,#+END_SRC
+
+  ,#+RESULTS: get-emacs-version
+  : emacs version: 24.5.1
+
+
+#+END_SRC
+
+* Export Settings for GitLab/GitHub Example
+#+BEGIN_SRC org
+,* Export Settings                                                  :noexport:
+,#+OPTIONS: todo:t
+,#+OPTIONS:  f:t
+,#+EXPORT_SELECT_TAGS: export
+,#+EXPORT_EXCLUDE_TAGS: noexport
+#+END_SRC
+
+* Does ~#+ATTR_HTML:~ syntax render in GitHub? Not yet.
+
+#+BEGIN_SRC org :results raw replace :exports both
+  ,#+ATTR_HTML: :title The Org mode homepage :style color:red;
+  [[http://orgmode.org]]
+#+END_SRC
+
+#+RESULTS:
+#+ATTR_HTML: :title The Org mode homepage :style color:red;
+[[http://orgmode.org]]
+
+* Simulate LHS Column Name Assignments
+
+Simulate Left Hand Side (LHS) column name assignments using [[https://orgmode.org/manual/Advanced-features.html#Advanced-features][named fields]] and a [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Keyboard-Macros.html][keyboard macro]].
+
+1. Update your [[https://emacs.stackexchange.com/q/42598/388][example table]] and formulas as follows:
+
+   #+BEGIN_SRC org :exports code
+     |   | Runde |  0 |  1 |  2 | Resultat | %          |
+     |---+-------+----+----+----+----------+------------|
+     | ! |       | c0 | c1 | cn |          |            |
+     | _ | name  |    |    |    | result   | percentage |
+     | # | Alice |  1 |  1 |  0 |          |            |
+     | # | Bob   |  0 |  0 |  1 |          |            |
+     | # | Eve   |  1 |  1 |  1 |          |            |
+     ,#+TBLFM: $result='(reduce '+ (vector $c0..$cn));N::$percentage='(calc-eval (format "(%i/%i)*100" $result (length (vector $c0..$cn))));%2.2f
+   #+END_SRC
+
+   - *Update Details*
+
+     - Added named column syntax for =c0=, =c1=, and =cn= which is referenced in formulas as =$c0..$cn= to allow additional columns to be added between =c0= and =cn= in future as needed.
+
+     - Redefined =name=, =result= and =percentage= using field name syntax.
+
+     - Added data row to table.
+
+     - Updated =#+TBLFM:= with similar formulas whose results are assigned on the LHS to the field names =$result= and =$percentage=.
+
+2. Define =simulate-lhs-column-name-assignments= keyboard macro using elisp =src= block.
+
+   #+BEGIN_SRC org :exports code
+     ,#+BEGIN_SRC elisp :results silent
+       (fset 'simulate-lhs-column-name-assignments
+          [?\C-u ?\C-u ?\C-c ?\C-c M-down])
+     ,#+END_SRC
+   #+END_SRC
+
+3. Bind =simulate-lhs-column-name-assignments= to key or your choice, e.g. =f6= key.
+
+   #+BEGIN_SRC org :exports code
+     ,#+BEGIN_SRC elisp  :results silent
+       (local-set-key (kbd "<f6>") 'simulate-lhs-column-name-assignments)
+     ,#+END_SRC
+   #+END_SRC
+
+4. Place point, aka cursor, inside a cell on the row which assigns field names.
+
+   : | _ | name  |    |    |    | result   | percentage |
+
+5. Call the =simulate-lhs-column-name-assignments= keyboard macro using the assigned key, e.g. =f6= key, until the line with the field assignments is at bottom of table. 
+
+   After completing this step, your table should resemble the example below:
+
+   #+BEGIN_SRC org :exports code
+     |   | Runde |  0 |  1 |  2 | Resultat |          % |
+     |---+-------+----+----+----+----------+------------|
+     | ! |       | c0 | c1 | cn |          |            |
+     | # | Alice |  1 |  1 |  0 |        2 |      66.67 |
+     | # | Bob   |  0 |  0 |  1 |        1 |      33.33 |
+     | # | Eve   |  1 |  1 |  1 |        3 |     100.00 |
+     | _ | name  |    |    |    |   result | percentage |
+     ,#+TBLFM: $result='(reduce '+ (vector $c0..$cn));N::$percentage='(calc-eval (format "(%i/%i)*100" $result (length (vector $c0..$cn))));%2.2f
+   #+END_SRC
+
+
+
+-----
+
+#+BEGIN_QUOTE
+*The code in this answer was validated using*  
+*emacs version:* GNU Emacs 25.2.1 (x86_64-unknown-cygwin, GTK+ Version 3.22.10)  
+*org version:* 9.1.2  
+#+END_QUOTE
+
+
+* mode line to temporary disable confirmation to execute or evaluate source blocks
+  1. Add near beginning of org file
+  : # -*- mode: org; org-confirm-babel-evaluate: nil; -*-

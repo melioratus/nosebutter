@@ -1,0 +1,20 @@
+* Analytical Design Help 
+  Useful references related to the topic of Analytical Design
+** Edward R. Tufte
+*** Design Priciples
+    1. Documenting the sources and characteristics of the data,
+    2. Insistently enforcing appropriate comparisons,
+    3. Demonstrating mechanisms of cause and effect,
+    4. Expressing mechanisms quantitatively,
+    5. Recognizing the inherently multivariate nature of analytical problems,
+    6. Inspecting and evaluating alternate explanations. [fn:1]
+*** Information Displays
+    #+BEGIN_QUOTE
+    [...] information displays should be documentary, comparative, causal and explanatory, quantified, multivariate, exploratory, skeptical. ~ Edward R. Tufte [fn:1]
+    #+END_QUOTE
+*** Quotes
+    #+BEGIN_QUOTE
+    Simple design, intense content. ~ Edward R. Tufte [fn:1]
+    #+END_QUOTE
+* Footnotes
+[fn:1] http://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=0001kE

@@ -1,0 +1,1127 @@
+* Summary
+
+Required to implement middleware auto start & stop scripts on all servers maintained by Application Engineering team.
+
+- Scope
+  - Hardware
+    - IBM Power
+    - Intel x86
+    - Oracle Sparc
+  - Operating Systems
+    - IBM AIX
+    - Oracle Solaris
+    - RHEL
+  - Middleware Software
+    - Adobe Experience Manager (AEM)
+    - Apache HTTPD
+    - Apache Tomcat
+    - IBM Liberty
+    - IBM WebSphere
+    - Oracle iPlanet
+    - Oracle SUNOne
+    - Oracle WebLogic
+
+- Goals
+  - Engineer away unnecessary =root= permissions for Application Engineering team.
+  - Reduce code maintainence.
+  - Enforce middleware auto start/stop on all AIX, Solaris and RHEL servers.
+  - Successful implementation on new and legacy servers.
+  - Standardized auto start/stop on all servers
+  - Future proof design
+
+* Proposal
+
+- Deploy a common generic rc script named =middleware= that will execute middleware startup and shutdown scripts in the =/app/scripts/rc.d= directory. Before executing any of the scripts, =middleware= will switch to an allowed service account as defined in section [[Allowed Application Engineer Service Account Names]]. Both files and softlinks may be placed in the =/app/scripts/rc.d= directory but all filenames must follow naming conventions in section [[Script Naming Conventions]] of this document.
+
+- In addition to the =middleware= script, the Application Engineering team will create, test and maintain Middleware Software scripts in version control that are *guaranteed* to work on all middleware servers that have been provisioned using team standards.
+
+- All project or legacy specific one-off scripts must also added and maintained inside the common middleware version control repository.
+
+* Examples
+
+In all these simple examples, the common generic rc script will be deployed to =/etc/init.d/middleware=.
+
+** Apache
+
+In this example, the path to the apache script is =/etc/init.d/httpd= and the service account is =apache=.
+
+1. Sys. Admin - Setup =/app/scripts/rc.d= directory.
+
+   #+BEGIN_SRC sh
+     mkdir -p /app/scripts/rc.d
+     chown -R apache:apps /app/scripts/rc.d
+   #+END_SRC
+
+2. App. Engineer - Create custom apache script then create softlinks under =/app/scripts/rc.d= directory.
+
+
+#+BEGIN_SRC sh
+  #
+  # Example Apache HTTPD RC Script
+  #
+
+  SCRIPT_NAME=`basename $0`
+
+  case $1 in
+      "")
+      #
+      # Check scriptname when no arguments
+      #
+          case $SCRIPT_NAME in
+              S*)
+                  $0 start
+                  ;;
+              K*)
+                  $0 stop
+                  ;;
+              C*)
+                  $0 check
+                  ;;
+              ,*)
+                  $0 help
+          esac
+          ;;
+      start)
+          echo "starting"
+          /etc/init.d/httpd start
+          ;;
+      stop)
+          echo "stopping"
+          /etc/init.d/httpd stop
+          ;;
+      check)
+           echo "checking"
+           /etc/init.d/httpd configtest
+          ;;
+      ,*)
+          #
+          # Display Help
+          #
+          echo "usage $SCRIPT_NAME [ start | stop | check | help ]"
+          exit
+  esac
+#+END_SRC
+
+
+#+BEGIN_SRC sh
+  ln -s  /app/scripts/rc.d/apache /app/scripts/rc.d/S00apache
+  ln -s  /app/scripts/rc.d/apache /app/scripts/rc.d/K00apache
+#+END_SRC
+
+** AEM-Author
+In this example, the paths to the aem scripts are =/app/adobe/aem/author/crx-quickstart/bin/start= and =/app/adobe/aem/author/crx-quickstart/bin/stop= and the service account is =appadm=.
+
+1. Sys. Admin - Setup =/app/scripts/rc.d= directory.
+
+   #+BEGIN_SRC sh
+     mkdir -p /app/scripts/rc.d
+     chown -R appadm:apps /app/scripts/rc.d
+   #+END_SRC
+
+2. App. Engineer - Create softlinks to =/app/adobe/aem/author/crx-quickstart/bin/start= and =/app/adobe/aem/author/crx-quickstart/bin/stop= under =/app/scripts/rc.d= directory.
+
+   #+BEGIN_SRC sh
+     ln -s  /app/adobe/aem/author/crx-quickstart/bin/start /app/scripts/rc.d/S00aem-author
+     ln -s  /app/adobe/aem/author/crx-quickstart/bin/stop /app/scripts/rc.d/K00aem-author
+   #+END_SRC
+
+** WebSphere
+
+*Note:* This example assumes the =-username= and =-password= parameters are not used because the credentials are encoded in the =soap.client.props= file.
+
+1. Sys. Admin - Setup =/app/scripts/rc.d= directory.
+
+   #+BEGIN_SRC sh
+     mkdir -p /app/scripts/rc.d
+     chown -R wasadm:apps /app/scripts/rc.d
+   #+END_SRC
+
+2. App. Engineer - Create softlinks to WebSphere commands under =/app/scripts/rc.d= directory.
+
+   | WebSphere Commands                                 |
+   |----------------------------------------------------|
+   | /app/IBM/WAS80/profiles/Dmgr01/bin/startManager.sh |
+   | /app/IBM/WAS80/profiles/Dmgr01/bin/stopManager.sh  |
+   | /app/IBM/WAS80/profiles/Fraud01/bin/startNode.sh   |
+   | /app/IBM/WAS80/profiles/Fraud01/bin/stopNode.sh    |
+
+   #+BEGIN_SRC sh
+     ln -s  /app/IBM/WAS80/profiles/Dmgr01/bin/startManager.sh /app/scripts/rc.d/S00websphere-dmgr
+     ln -s  /app/IBM/WAS80/profiles/Dmgr01/bin/stopManager.sh /app/scripts/rc.d/K00websphere-dmgr
+
+     ln -s  /app/IBM/WAS80/profiles/Fraud01/bin/startNode.sh /app/scripts/rc.d/S00websphere-node
+     ln -s  /app/IBM/WAS80/profiles/Fraud01/bin/stopNode.sh /app/scripts/rc.d/K00websphere-node
+   #+END_SRC
+
+3. App. Engineer - Generate WebSphere Profile Specific Scripts
+
+   #+BEGIN_SRC sh
+     #
+     # cd /${WAS_HOME}/profiles/<profile-name>/bin/
+     #
+
+     cd /app/IBM/WAS80/profiles/Fraud01/bin/
+
+     #
+     # Fetch server-name using ./serverStatus
+     #
+
+     ./serverStatus -all
+
+     #
+     # Generate  WebSphere Profile Specific Script
+     #
+     ./startServer.sh WFRsic01m340 -script /app/scripts/rc.d/S00websphere-wfrsic01m340 -background
+   #+END_SRC
+
+* Details
+
+** System Administration Specific Details
+
+- System Administrators:
+
+  - Deploy generic rc script, =middleware=, into the =/etc/init.d= directory on all current Unix and Linux servers.
+
+  - Create the =/app/scripts/rc.d= directory and set ownership of directory to =apache, wasadm, webservd, wlsadm= or the default account, =appadm=.
+
+  - Add generic rc script =middleware= and =/app/scripts/rc.d= into all future Unix & Linux provisioned servers.
+
+  - Will =enable= the =middleware= script on all Unix and Linux servers by default.
+
+  - Can safely =disable= & =enable= the =middleware= script  during patching cycles using simple command if needed. *Optional*
+
+    #+CAPTION: =enable= and =disable= are defined in section [[AppEng Generic RC Script Properties Table]] of this document.
+    #+RESULTS: 
+    | Property-name                        | Property-value |
+    |--------------------------------------+----------------|
+    | appeng-generic-rc-script-cmd-disable | disable        |
+    | appeng-generic-rc-script-cmd-enable  | enable         |
+
+    - Example =enable= and =disable= commands
+
+      #+CAPTION: Example =middleware= =enable= command
+      #+NAME: example-appeng-generic-rc-script-cmd-enable
+      #+BEGIN_SRC sh
+        /etc/init.d/middleware enable
+      #+END_SRC
+
+      #+CAPTION: Example =middleware= =disable= command
+      #+NAME: example-appeng-generic-rc-script-cmd-disable
+      #+BEGIN_SRC sh
+        /etc/init.d/middleware disable
+      #+END_SRC
+
+** Application Engineering Specific Details
+
+- Application Engineering:
+
+  - Provide & maintain the generic rc script, i.e. =middleware=.
+
+    #+CAPTION: The =middleware= scriptname is defined in section [[AppEng Generic RC Script Properties Table]] of this document.
+    | Property-name                 | Property-value |
+    |-------------------------------+----------------|
+    | appeng-generic-rc-script-name | middleware     |
+
+  - Provide owner account name of =/app/scripts/rc.d= directory to system adminstrators. If the account name is not specified =appadm= will be used as the default account name. The allowed service account names are listed in the table below:
+
+    #+CAPTION: The allowed service account names are defined in section [[Allowed Application Engineer Service Account Names Table]] of this document.
+    | Service Account Name |
+    |----------------------|
+    | apache               |
+    | appadm               |
+    | wasadm               |
+    | webservd             |
+    | wlsadm               |
+
+  - Add and maintain application specific scripts under the subdirectory, =/app/scripts/rc.d= directory.
+
+  - Adher to the proposed [[Script Naming Conventions][Script Naming Conventions]] when adding scripts or softlinks under =/app/scripts/rc.d= directory.
+
+** =middleware= Script
+
+The =middleware= script is composed the following sections: 
+
+*** Display =middleware= Usage
+
+#+NAME: appeng-generic-rc-script-cmd-usage-code
+#+BEGIN_SRC sh
+  #
+  # Display Usage
+  #
+
+  echo "Usage: $0 [ status | start | stop | check | enable | disable ]"
+#+END_SRC
+
+*** Detect OS Type
+
+The =middleware= script is designed to execute on the following operating systems:
+
+#+CAPTION: List of Operating Systems
+#+NAME: appeng-generic-rc-script-os-types
+#+RESULTS: 
+| OS    |
+|-------|
+| Linux |
+| AIX   |
+| SunOS |
+
+**** Find path to =uname= command.
+
+In order to execute correctly, the =middleware= script will first need to detect the host OS using the Unix shell command =uname=. The table below lists the known paths for =uname= for compatible operating systems. The list of paths is derived from the [[Required Unix Programs Table][Required Unix Programs Table]].
+
+#+NAME: os-unix-shell-cmd-uname-paths
+| /bin/uname     |
+| /usr/bin/uname |
+
+**** Detect OS Code using =uname=
+
+After the =middleware= script finds =uname=, the server operating system will be detected and stored in an environmental variable. 
+
+#+NAME: appeng-generic-rc-script-detect-os-type-code
+#+BEGIN_SRC sh
+  #
+  # Detect uname command
+  #
+
+  if [ -x '/bin/uname' ]; then 
+      #
+      readonly UNAME_CMD='/bin/uname';
+      #
+  elif [ -x '/usr/bin/uname' ]; then 
+      #
+      readonly UNAME_CMD='/usr/bin/uname';
+      #
+  else
+      echo 'ERROR: uname command not found!!'
+      echo 'ERROR: exiting middleware script!!'
+      exit
+  fi
+
+  #
+  # Detect OS Type
+  #
+
+  readonly SERVER_OS=`$UNAME_CMD`
+#+END_SRC
+
+*** Setup Environmental Variables
+
+- The following table from section [[Allowed Application Engineer Service Account Names Table]] lists the service account names which are allowed to own the =/app/scripts/rc.d= directory.
+
+  | Service Account Name |
+  |----------------------|
+  | apache               |
+  | appadm               |
+  | wasadm               |
+  | webservd             |
+  | wlsadm               |
+
+- Allowed service accounts are setup as a readonly environment variable to prevent tampering and ensure script stability.
+
+  #+NAME: appeng-generic-rc-subdir-owners-list-env-code
+  #+BEGIN_SRC sh
+    #
+    # Setup Allowed Users List - readonly
+    # 
+
+    declare -Ar ALLOWED_USERS=([apache]=apache [appadm]=appadm [wasadm]=wasadm [webservd]=webservd [wlsadm]=wlsadm)
+  #+END_SRC
+
+- The environmental variables which are operating system specific, define the full path to each of the required programs in section [[Check Required Programs]].
+
+*** Check Required Programs
+
+- The following programs are required for the =middleware= script to function correctly.
+
+  #+CAPTION: This table is maintained in section [[Required Unix Programs Table]] of this document.
+  #+RESULTS: 
+  | Program-name | OS    | Full-Path      |
+  |--------------+-------+----------------|
+  | ln           | Linux | /bin/ln        |
+  | ls           | Linux | /bin/ls        |
+  | rm           | Linux | /bin/rm        |
+  | perl         | Linux | /usr/bin/perl  |
+  | su           | Linux | /bin/su        |
+  | uname        | Linux | /bin/uname     |
+  |--------------+-------+----------------|
+  | ln           | AIX   | /usr/bin/ln    |
+  | ls           | AIX   | /usr/bin/ls    |
+  | rm           | AIX   | /usr/bin/rm    |
+  | perl         | AIX   | /usr/bin/perl  |
+  | su           | AIX   | /usr/bin/su    |
+  | uname        | AIX   | /usr/bin/uname |
+  |--------------+-------+----------------|
+  | ln           | SunOS | /usr/bin/ln    |
+  | ls           | SunOS | /usr/bin/ls    |
+  | rm           | SunOS | /usr/bin/rm    |
+  | perl         | SunOS | /usr/bin/perl  |
+  | su           | SunOS | /usr/bin/su    |
+  | uname        | SunOS | /usr/bin/uname |
+
+- Note: Strong Dependency between [[Setup Environmental Variables][Setup Environmental Variables]] and [[Check Required Programs][Check Required Programs]]  
+
+  Because the setup environmental variables code and the check required programs code are strongly dependent, the code is combined into a single block of code.
+
+  #+NAME: appeng-generic-rc-script-setup-env-and-check-programs-code
+  #+BEGIN_SRC sh
+    #
+    # Setup Allowed Users List - readonly
+    # 
+
+    declare -Ar ALLOWED_USERS=([apache]=apache [appadm]=appadm [wasadm]=wasadm [webservd]=webservd [wlsadm]=wlsadm)
+
+    #
+    # Setup OS Specific Environment Variables
+    #
+
+    case $SERVER_OS in
+        Linux)
+          readonly LN_CMD='/bin/ln'
+          readonly LS_CMD='/bin/ls'
+          readonly RM_CMD='/bin/rm'
+          readonly PERL_CMD='/usr/bin/perl'
+          readonly SU_CMD='/bin/su'
+            ;;
+        AIX)
+          readonly LN_CMD='/usr/bin/ln'
+          readonly LS_CMD='/usr/bin/ls'
+          readonly RM_CMD='/usr/bin/rm'
+          readonly PERL_CMD='/usr/bin/perl'
+          readonly SU_CMD='/usr/bin/su'
+            ;;
+        SunOS)
+          readonly LN_CMD='/usr/bin/ln'
+          readonly LS_CMD='/usr/bin/ls'
+          readonly RM_CMD='/usr/bin/rm'
+          readonly PERL_CMD='/usr/bin/perl'
+          readonly SU_CMD='/usr/bin/su'
+            ;;     
+        ,*)
+            #
+            # Error Unsupported OS
+            #
+
+            echo "ERROR: Unsupported OS $SERVER_OS!"
+            exit
+    esac
+
+    #
+    # Check for Required Commands
+    #
+
+    readonly REQ_CMDS=($LN_CMD $LS_CMD $RM_CMD $PERL_CMD $SU_CMD)
+
+    for prg in ${REQ_CMDS[@]}; do
+
+        if [ ! -x "$prg" ]; then
+            echo "ERROR! Required command $prg Not Found!"
+            exit
+        fi
+
+    done
+
+  #+END_SRC
+
+*** Check =/app/scripts/rc.d= Directory Configuration
+
+**** Check =/app/scripts/rc.d= Directory Exists
+
+| Required-Directory-Paths |
+|--------------------------|
+| /app/scripts/rc.d        |
+
+#+NAME: appeng-generic-rc-script-check-required-paths-code
+#+BEGIN_SRC sh
+  #
+  # Check /app/scripts/rc.d Configuration
+  #
+
+  if [ ! -d '/app/scripts/rc.d' ]; then
+      #
+      # Error Required Directory /app/scripts/rc.d not found
+      #
+
+      echo "ERROR: Required Directory /app/scripts/rc.d Not Found!"
+      exit
+  fi
+#+END_SRC
+
+**** Check Ownership of =/app/scripts/rc.d= Directory
+
+#+NAME: appeng-generic-rc-script-check-rc-subdir-owner-code
+#+BEGIN_SRC sh
+
+  #
+  # Check Ownership of /app/scripts/rc.d Directory
+  #
+
+  readonly RCDDIR_OWNER=`$PERL_CMD -e 'my $my_uid = (stat q(/app/scripts/rc.d))[4]; print STDOUT (getpwuid $my_uid) . qq()'`
+
+  if [ "${ALLOWED_USERS[$RCDDIR_OWNER]}" != "$RCDDIR_OWNER" ] || [ -z "$RCDDIR_OWNER" ]; then
+
+      #
+      # Error! Invalid Ownership of /app/scripts/rc.d Directory
+      #
+
+      echo "Error! Invalid Ownership of /app/scripts/rc.d Directory!"
+      echo
+      echo "The /app/scripts/rc.d directory *must* be owned by one of following accounts:"
+      echo "${ALLOWED_USERS[@]}"
+      echo
+      echo "Please update /app/scripts/rc.d directory ownership and try again"
+      exit
+  fi
+#+END_SRC
+
+*** Setup Switch User if Needed
+
+When the =middleware= script is not invoked by an [[Allowed Application Engineer Service Account Names][allowed user]], the invoking user, e.g.  =root=, must use a Unix switch user command such as =su= or =sudo=.
+
+#+NAME: appeng-generic-rc-script-setup-switch-user-code
+#+BEGIN_SRC sh
+  #
+  # Setup Switch User if Needed
+  #
+
+  readonly INVOKING_USER=`$PERL_CMD -e "print STDOUT (getpwuid $EUID) . qq()"`
+
+  if [ -z "$INVOKING_USER" ]; then
+
+      #
+      # Error! Invalid User - Who Invoked the Script?
+      #
+
+      echo "Error! Invalid User - Who Invoked the Script?"
+      echo "Command returned empty string!"
+      echo "$PERL_CMD -e \"print STDOUT (getpwuid \$EUID) . qq()\""
+      echo "\$EUID is \"$EUID\""
+      exit
+  fi
+
+  if [ "${ALLOWED_USERS[$INVOKING_USER]}" != "$INVOKING_USER" ]; then
+
+      #
+      # Set Switch User Environmental Variables
+      #
+      readonly CALL_SU_CMD=$SU_CMD
+      readonly MINUS_FLAG='-'
+      readonly AS_USER=$RCDDIR_OWNER
+      readonly MINUS_C_FLAG='-c'
+
+  else
+
+      #
+      # Unset Switch User Environmental Variables
+      #
+      readonly CALL_SU_CMD=''
+      readonly MINUS_FLAG=''
+      readonly AS_USER=''
+      readonly MINUS_C_FLAG=''
+
+  fi
+#+END_SRC
+
+*** Process Command-line Arguments
+
+**** Command-line Options
+
+List of available command-line options for  =middleware= script.
+
+***** =start= Option Code
+
+#+NAME: appeng-generic-rc-script-cmd-start-code
+#+BEGIN_SRC sh
+  start)
+
+        echo "#"
+        echo "# start middleware "
+        echo "#" 
+
+        readonly START_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/S[0-9][0-9]*`)
+
+        for cmd in ${START_CMDS[@]}; do
+            echo "Executing $cmd"
+            $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+        done
+  ;; 
+
+#+END_SRC
+
+***** =stop= Option Code
+
+#+NAME: appeng-generic-rc-script-cmd-stop-code
+#+BEGIN_SRC sh
+  stop)
+
+        echo "#"
+        echo "# stop middleware "
+        echo "#"   
+
+    readonly STOP_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/K[0-9][0-9]*`)
+
+    for cmd in ${STOP_CMDS[@]}; do
+        echo "Executing $cmd"
+        $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+    done
+  ;; 
+
+#+END_SRC
+
+***** =status= Option Code
+
+The code in this section is only for demonstration purposes. 
+
+This code will display the =status= of the =middleware= components and provide user feedback for troubleshooting startup or shutdown problems.
+
+#+NAME: appeng-generic-rc-script-cmd-status-code
+#+BEGIN_SRC sh
+  status)
+
+        echo "#"
+        echo "# status middleware "
+        echo "#"   
+
+        readonly STATUS_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/R[0-9][0-9]*`)
+
+        for cmd in ${STATUS_CMDS[@]}; do
+           echo "Executing $cmd"
+           $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+        done   
+
+  ;; 
+
+#+END_SRC
+
+***** =check= Option Code
+
+This code will check all requirements of the =middleware= and provide user feedback for troubleshooting startup or shutdown problems.
+
+#+NAME: appeng-generic-rc-script-cmd-check-code
+#+BEGIN_SRC sh
+  check)
+
+        echo "#"
+        echo "# check middleware "
+        echo "#"   
+
+    readonly CHECK_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/C[0-9][0-9]*`)
+
+    for cmd in ${CHECK_CMDS[@]}; do
+        echo "Executing $cmd"
+        $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+    done
+  ;; 
+
+#+END_SRC
+
+***** =enable= Option Code
+
+The code in this section is only for demonstration purposes. The Application Engineering team and Systems Administrators team will need to coordinate and collaborate on this code.
+
+#+NAME: appeng-generic-rc-script-cmd-enable-code
+#+BEGIN_SRC sh
+  enable)
+
+        echo "#"
+        echo "# enable middleware "
+        echo "#"
+        echo "$LN_CMD -s  $0 /etc/rc3.d/S99middleware" 
+        echo "$LN_CMD -s  $0 /etc/rc0.d/K00middleware" 
+        echo "$LN_CMD -s  $0 /etc/rc1.d/K00middleware" 
+        echo "$LN_CMD -s  $0 /etc/rc2.d/K00middleware" 
+        echo "$LN_CMD -s  $0 /etc/rc3.d/K00middleware" 
+        echo "$LN_CMD -s  $0 /etc/rc5.d/K00middleware" 
+  ;; 
+
+#+END_SRC
+
+***** =disable= Option Code
+
+The code in this section is only for demonstration purposes. The Application Engineering team and Systems Administrators team will need to coordinate and collaborate on this code.
+
+#+NAME: appeng-generic-rc-script-cmd-disable-code
+#+BEGIN_SRC sh
+  disable)
+
+        echo "#"
+        echo "# disable middleware "
+        echo "#   "
+        echo "$RM_CMD /etc/rc3.d/S99middleware" 
+        echo "$RM_CMD /etc/rc0.d/K00middleware" 
+        echo "$RM_CMD /etc/rc1.d/K00middleware" 
+        echo "$RM_CMD /etc/rc2.d/K00middleware" 
+        echo "$RM_CMD /etc/rc3.d/K00middleware" 
+        echo "$RM_CMD /etc/rc5.d/K00middleware" 
+  ;; 
+
+#+END_SRC
+
+***** Default Option Code
+
+The code in this section should provide helpful information when the =middleware= script is invoked.
+
+#+NAME: appeng-generic-rc-script-cmd-default-code
+#+BEGIN_SRC sh
+  ,*)
+      #
+      # Display Usage
+      #
+
+      echo "Usage: $0 [ status | start | stop | check | enable | disable ]"
+  ;;    
+#+END_SRC
+
+* Misc. Notes
+
+** Allowed Application Engineer Service Account Names
+
+The table below contains the list of service accounts that may have ownership of the =/app/scripts/rc.d= directory.
+
+*** Allowed Application Engineer Service Account Names Table
+
+#+CAPTION: List of Allowed Service Accounts
+#+NAME: appeng-generic-rc-subdir-owners-table
+| Service Account Name |
+|----------------------|
+| apache               |
+| appadm               |
+| wasadm               |
+| webservd             |
+| wlsadm               |
+
+*Note:* The table does *not* include the numeric =uid= because the =uid= values are not consistantly implemented across legacy systems. As legacy systems are upgraded, the standard =appadm= service account will be implemented.
+
+** Application Engineering Generic RC Script Properties
+
+Use the [[AppEng Generic RC Script Properties Table][AppEng Generic RC Script Properties Table]] as the centralized source for all key-value properties this proposal.   
+
+*** AppEng Generic RC Script Properties Table
+
+#+CAPTION: AppEng Generic RC Script Properties
+#+NAME: appeng-generic-rc-script-properties-table
+| Property-name                                    | Property-value |
+|--------------------------------------------------+----------------|
+| appeng-generic-rc-script-cmd-check               | check          |
+| appeng-generic-rc-script-cmd-disable             | disable        |
+| appeng-generic-rc-script-cmd-enable              | enable         |
+| appeng-generic-rc-script-cmd-start               | start          |
+| appeng-generic-rc-script-cmd-status              | status         |
+| appeng-generic-rc-script-cmd-stop                | stop           |
+| appeng-generic-rc-script-default-check-prefix    | C              |
+| appeng-generic-rc-script-default-exec-order      | "00"           |
+| appeng-generic-rc-script-default-shutdown-prefix | K              |
+| appeng-generic-rc-script-default-startup-prefix  | S              |
+| appeng-generic-rc-script-default-status-prefix   | R              |
+| appeng-generic-rc-script-initd-dir               | /etc/init.d    |
+| appeng-generic-rc-script-name                    | middleware     |
+| appeng-generic-rc-subdir                         | /rc.d          |
+| appeng-standard-dir                              | /app/scripts   |
+| os-unix-shell-cmd-uname                          | uname          |
+| os-unix-superuser-account                        | root           |
+
+** Middleware Software Table
+
+- The middleware software table lists software that /should be/ compatible with =middleware=. 
+
+  #+CAPTION: List of Middleware Software
+  #+NAME: middleware-software-table
+  #+RESULTS: 
+  | Middleware-Software |
+  |---------------------|
+  | WebSphere           |
+  | WebLogic            |
+  | HTTPD               |
+  | AEM-Author          |
+  | AEM-Publish         |
+
+- As the =middleware= script matures, update the table below to allow for additional automation during the setup and configuration of the =/app/scripts/rc.d= directory.
+
+  #+CAPTION: Middleware Software Details
+  #+NAME: middleware-software-details-table
+  | Middleware-Software | Exec-Type | Full-Path                                        | Required Arguments | Script Only |
+  |---------------------+-----------+--------------------------------------------------+--------------------+-------------|
+  | WebSphere           |           |                                                  |                    |             |
+  |---------------------+-----------+--------------------------------------------------+--------------------+-------------|
+  | WebLogic            |           |                                                  |                    |             |
+  |---------------------+-----------+--------------------------------------------------+--------------------+-------------|
+  | HTTPD               | start     | /etc/init/httpd                                  | start              | Yes         |
+  | HTTPD               | stop      | /etc/init/httpd                                  | stop               | Yes         |
+  | HTTPD               | check     | /etc/init/httpd                                  | configtest         | Yes         |
+  |---------------------+-----------+--------------------------------------------------+--------------------+-------------|
+  | AEM-Author          | start     | /app/adobe/aem/author/crx-quickstart/bin/start   |                    | No          |
+  | AEM-Author          | stop      | /app/adobe/aem/author/crx-quickstart/bin/stop    |                    | No          |
+  | AEM-Author          | status    | /app/adobe/aem/author/crx-quickstart/bin/status  |                    | No          |
+  |---------------------+-----------+--------------------------------------------------+--------------------+-------------|
+  | AEM-Publish         | start     | /app/adobe/aem/publish/crx-quickstart/bin/start  |                    | No          |
+  | AEM-Publish         | stop      | /app/adobe/aem/publish/crx-quickstart/bin/stop   |                    | No          |
+  | AEM-Publish         | status    | /app/adobe/aem/publish/crx-quickstart/bin/status |                    | No          |
+
+  *Note:* These automation features still need to implemented.
+
+** Required Directory Path
+
+*** Required Directory Path Table
+
+#+CAPTION: List of Required Directories
+| Required-Directory-Paths |
+|--------------------------|
+| /app/scripts/rc.d        |
+
+** Required Unix Programs
+
+*** Required Unix Programs Table
+
+#+CAPTION: Required Unix Programs by OS and Full Path
+#+NAME: appeng-generic-rc-script-required-programs
+| Program-name | OS    | Full-Path      |
+|--------------+-------+----------------|
+| ln           | Linux | /bin/ln        |
+| ls           | Linux | /bin/ls        |
+| rm           | Linux | /bin/rm        |
+| perl         | Linux | /usr/bin/perl  |
+| su           | Linux | /bin/su        |
+| uname        | Linux | /bin/uname     |
+|--------------+-------+----------------|
+| ln           | AIX   | /usr/bin/ln    |
+| ls           | AIX   | /usr/bin/ls    |
+| rm           | AIX   | /usr/bin/rm    |
+| perl         | AIX   | /usr/bin/perl  |
+| su           | AIX   | /usr/bin/su    |
+| uname        | AIX   | /usr/bin/uname |
+|--------------+-------+----------------|
+| ln           | SunOS | /usr/bin/ln    |
+| ls           | SunOS | /usr/bin/ls    |
+| rm           | SunOS | /usr/bin/rm    |
+| perl         | SunOS | /usr/bin/perl  |
+| su           | SunOS | /usr/bin/su    |
+| uname        | SunOS | /usr/bin/uname |
+
+** Script Naming Conventions
+
+All RC scriptnames should be generated to provide a consistant naming standard and reduce maintainence. 
+
+#+CAPTION: RC scriptname generator code
+#+NAME: generate-rc-script-filenames
+#+HEADER: :var appserver_type='(("example"))
+#+HEADER: :var optional_suffixes='()
+#+HEADER: :var exec_type=append-arrays-ruby[:var a1=appeng-generic-rc-script-default-startup-prefix() :var b1=appeng-generic-rc-script-default-shutdown-prefix()](data1='("#{a1}"), data2='("#{b1}"))
+#+HEADER: :var exec_order="00"
+#+HEADER: :var delimiters='("" "-")
+#+HEADER: :var show_col0="Y"
+#+HEADER: :exports code
+#+HEADER: :results replace
+#+BEGIN_SRC ruby
+  #
+  # Generate Script Names
+  #
+
+  script_names = appserver_type.flatten.map{ |script_name| 
+    [ (show_col0.empty?)? nil : script_name ,    
+      exec_type.map{ |et| 
+        [et.upcase,exec_order,script_name.downcase].join(delimiters[0])
+      }
+    ].flatten.compact
+  }
+
+  #
+  # Add Optional Suffixes if provided
+  #
+
+  (optional_suffixes.all? &:nil?) ? script_names : optional_suffixes.map{|opt_sfx| script_names.map{|s| s.map{|script_name| [script_name,opt_sfx.downcase].join(delimiters[1])}}}.flatten(1)
+
+#+END_SRC
+
+*** Startup Script Naming Convention
+
+All startup scriptnames will be prefixed with =S= and an execution order prefix, e.g. =00=.
+
+| Middleware | Scriptname |
+|------------+------------|
+| example    | S00example |
+
+*** Shutdown Script Naming Convention
+
+All shutdown scriptnames will be prefixed with =K= and an execution order prefix, e.g. =00=.
+
+| Middleware | Scriptname |
+|------------+------------|
+| example    | K00example |
+
+*** Example of Generated RC Scriptnames for Middleware Software
+
+| Middleware  | Startup Scriptname | Shutdown Scriptname |
+|-------------+--------------------+---------------------|
+| WebSphere   | S00websphere       | K00websphere        |
+| WebLogic    | S00weblogic        | K00weblogic         |
+| HTTPD       | S00httpd           | K00httpd            |
+| AEM-Author  | S00aem-author      | K00aem-author       |
+| AEM-Publish | S00aem-publish     | K00aem-publish      |
+
+** Source Code - =middleware=
+
+The =middleware= source code is listed below:
+
+#+CAPTION: Source code of =middleware= script
+#+BEGIN_SRC sh
+  #!/usr/bin/bash
+
+  #
+  # Warning! This middleware script is generated from a literate program.
+  #          Manual updates to this script may be overwritten!
+  #
+
+
+  #
+  # Detect uname command
+  #
+
+  if [ -x '/bin/uname' ]; then 
+      #
+      readonly UNAME_CMD='/bin/uname';
+      #
+  elif [ -x '/usr/bin/uname' ]; then 
+      #
+      readonly UNAME_CMD='/usr/bin/uname';
+      #
+  else
+      echo 'ERROR: uname command not found!!'
+      echo 'ERROR: exiting middleware script!!'
+      exit
+  fi
+
+  #
+  # Detect OS Type
+  #
+
+  readonly SERVER_OS=`$UNAME_CMD`
+
+  #
+  # Setup Allowed Users List - readonly
+  # 
+
+  declare -Ar ALLOWED_USERS=([apache]=apache [appadm]=appadm [wasadm]=wasadm [webservd]=webservd [wlsadm]=wlsadm)
+
+  #
+  # Setup OS Specific Environment Variables
+  #
+
+  case $SERVER_OS in
+      Linux)
+        readonly LN_CMD='/bin/ln'
+        readonly LS_CMD='/bin/ls'
+        readonly RM_CMD='/bin/rm'
+        readonly PERL_CMD='/usr/bin/perl'
+        readonly SU_CMD='/bin/su'
+          ;;
+      AIX)
+        readonly LN_CMD='/usr/bin/ln'
+        readonly LS_CMD='/usr/bin/ls'
+        readonly RM_CMD='/usr/bin/rm'
+        readonly PERL_CMD='/usr/bin/perl'
+        readonly SU_CMD='/usr/bin/su'
+          ;;
+      SunOS)
+        readonly LN_CMD='/usr/bin/ln'
+        readonly LS_CMD='/usr/bin/ls'
+        readonly RM_CMD='/usr/bin/rm'
+        readonly PERL_CMD='/usr/bin/perl'
+        readonly SU_CMD='/usr/bin/su'
+          ;;     
+      ,*)
+          #
+          # Error Unsupported OS
+          #
+
+          echo "ERROR: Unsupported OS $SERVER_OS!"
+          exit
+  esac
+
+  #
+  # Check for Required Commands
+  #
+
+  readonly REQ_CMDS=($LN_CMD $LS_CMD $RM_CMD $PERL_CMD $SU_CMD)
+
+  for prg in ${REQ_CMDS[@]}; do
+
+      if [ ! -x "$prg" ]; then
+          echo "ERROR! Required command $prg Not Found!"
+          exit
+      fi
+
+  done
+
+
+  #
+  # Check /app/scripts/rc.d Configuration
+  #
+
+  if [ ! -d '/app/scripts/rc.d' ]; then
+      #
+      # Error Required Directory /app/scripts/rc.d not found
+      #
+
+      echo "ERROR: Required Directory /app/scripts/rc.d Not Found!"
+      exit
+  fi
+
+
+  #
+  # Check Ownership of /app/scripts/rc.d Directory
+  #
+
+  readonly RCDDIR_OWNER=`$PERL_CMD -e 'my $my_uid = (stat q(/app/scripts/rc.d))[4]; print STDOUT (getpwuid $my_uid) . qq()'`
+
+  if [ "${ALLOWED_USERS[$RCDDIR_OWNER]}" != "$RCDDIR_OWNER" ] || [ -z "$RCDDIR_OWNER" ]; then
+
+      #
+      # Error! Invalid Ownership of /app/scripts/rc.d Directory
+      #
+
+      echo "Error! Invalid Ownership of /app/scripts/rc.d Directory!"
+      echo
+      echo "The /app/scripts/rc.d directory *must* be owned by one of following accounts:"
+      echo "${ALLOWED_USERS[@]}"
+      echo
+      echo "Please update /app/scripts/rc.d directory ownership and try again"
+      exit
+  fi
+
+  #
+  # Setup Switch User if Needed
+  #
+
+  readonly INVOKING_USER=`$PERL_CMD -e "print STDOUT (getpwuid $EUID) . qq()"`
+
+  if [ -z "$INVOKING_USER" ]; then
+
+      #
+      # Error! Invalid User - Who Invoked the Script?
+      #
+
+      echo "Error! Invalid User - Who Invoked the Script?"
+      echo "Command returned empty string!"
+      echo "$PERL_CMD -e \"print STDOUT (getpwuid \$EUID) . qq()\""
+      echo "\$EUID is \"$EUID\""
+      exit
+  fi
+
+  if [ "${ALLOWED_USERS[$INVOKING_USER]}" != "$INVOKING_USER" ]; then
+
+      #
+      # Set Switch User Environmental Variables
+      #
+      readonly CALL_SU_CMD=$SU_CMD
+      readonly MINUS_FLAG='-'
+      readonly AS_USER=$RCDDIR_OWNER
+      readonly MINUS_C_FLAG='-c'
+
+  else
+
+      #
+      # Unset Switch User Environmental Variables
+      #
+      readonly CALL_SU_CMD=''
+      readonly MINUS_FLAG=''
+      readonly AS_USER=''
+      readonly MINUS_C_FLAG=''
+
+  fi
+
+  #
+  # Process Command-line Options
+  #
+
+  case $1 in
+      start)
+
+            echo "#"
+            echo "# start middleware "
+            echo "#" 
+
+            readonly START_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/S[0-9][0-9]*`)
+
+            for cmd in ${START_CMDS[@]}; do
+                echo "Executing $cmd"
+                $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+            done
+      ;; 
+
+      stop)
+
+            echo "#"
+            echo "# stop middleware "
+            echo "#"   
+
+        readonly STOP_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/K[0-9][0-9]*`)
+
+        for cmd in ${STOP_CMDS[@]}; do
+            echo "Executing $cmd"
+            $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+        done
+      ;; 
+
+      status)
+
+            echo "#"
+            echo "# status middleware "
+            echo "#"   
+
+            readonly STATUS_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/R[0-9][0-9]*`)
+
+            for cmd in ${STATUS_CMDS[@]}; do
+               echo "Executing $cmd"
+               $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+            done   
+
+      ;; 
+
+      check)
+
+            echo "#"
+            echo "# check middleware "
+            echo "#"   
+
+        readonly CHECK_CMDS=(`$LS_CMD -1 /app/scripts/rc.d/C[0-9][0-9]*`)
+
+        for cmd in ${CHECK_CMDS[@]}; do
+            echo "Executing $cmd"
+            $CALL_SU_CMD $MINUS_FLAG $AS_USER $MINUS_C_FLAG $cmd
+        done
+      ;; 
+
+      enable)
+
+            echo "#"
+            echo "# enable middleware "
+            echo "#"
+            echo "$LN_CMD -s  $0 /etc/rc3.d/S99middleware" 
+            echo "$LN_CMD -s  $0 /etc/rc0.d/K00middleware" 
+            echo "$LN_CMD -s  $0 /etc/rc1.d/K00middleware" 
+            echo "$LN_CMD -s  $0 /etc/rc2.d/K00middleware" 
+            echo "$LN_CMD -s  $0 /etc/rc3.d/K00middleware" 
+            echo "$LN_CMD -s  $0 /etc/rc5.d/K00middleware" 
+      ;; 
+
+      disable)
+
+            echo "#"
+            echo "# disable middleware "
+            echo "#   "
+            echo "$RM_CMD /etc/rc3.d/S99middleware" 
+            echo "$RM_CMD /etc/rc0.d/K00middleware" 
+            echo "$RM_CMD /etc/rc1.d/K00middleware" 
+            echo "$RM_CMD /etc/rc2.d/K00middleware" 
+            echo "$RM_CMD /etc/rc3.d/K00middleware" 
+            echo "$RM_CMD /etc/rc5.d/K00middleware" 
+      ;; 
+
+      ,*)
+          #
+          # Display Usage
+          #
+
+          echo "Usage: $0 [ status | start | stop | check | enable | disable ]"
+      ;;    
+  esac
+#+END_SRC

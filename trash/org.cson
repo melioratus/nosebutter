@@ -1,0 +1,358 @@
+fileTypes: [
+  "org"
+  "tasks"
+  "orgmode"
+]
+name: "orgmode"
+patterns: [
+  {
+    begin: '''
+      (?x)
+      ^(\\*+)               # leading stars
+      \\s*([A-Z_]{2,})?     # todo keywords
+      \\s*(\\[\\#[A-Ca-c]\\])? # priority
+      \\s*(?=\\s+[A-Za-z]+)  # expected heading text
+
+    '''
+    beginCaptures:
+      "1":
+        name: "punctuation.definition.heading.orgmode"
+      "2":
+        name: "keyword.other.todo.orgmode"
+      "3":
+        name: "constant.other.priority.orgmode"
+    comment: "Outline headings"
+    contentName: "entity.name.section.orgmode"
+    end: "(?=\\s*$\\n?)"
+    name: "markup.heading.orgmode"
+    patterns: [
+      {
+        include: "#heading-inline"
+      }
+    ]
+  }
+  {
+    match: "^-{5,}$"
+    name: "meta.separator.orgmode"
+  }
+  {
+    begin: "^\\s*([-+]|\\s+\\*)\\s+(.*?)\\s+::"
+    beginCaptures:
+      "1":
+        name: "keyword.operator.list.orgmode"
+      "2":
+        name: "markup.bold.definition.orgmode"
+    end: "$"
+    name: "meta.list.definition.orgmode"
+    patterns: [
+      {
+        include: "#inline"
+      }
+    ]
+  }
+  {
+    begin: "^\\s*?([-+]|\\s+\\*|\\d+[).])"
+    beginCaptures:
+      "1":
+        name: "keyword.operator.list.orgmode"
+    end: "$"
+    name: "meta.list.plain.orgmode"
+    patterns: [
+      {
+        include: "#list-inline"
+      }
+    ]
+  }
+  {
+    begin: "(?i)^#\\+(BEGIN_(QUOTE|VERSE|CENTER))$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    end: "(?i)^#\\+(END_\\2)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "markup.quote.orgmode"
+  }
+  {
+    match: "^#[^+].*$"
+    name: "comment.line.number-sign.orgmode"
+  }
+  {
+    begin: "^:(PROPERTIES):$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.drawer.orgmode"
+    end: "^:(END):$"
+    endCaptures:
+      "1":
+        name: "keyword.control.drawer.orgmode"
+    name: "meta.drawer.properties.orgmode"
+    patterns: [
+      {
+        include: "#properties"
+      }
+    ]
+  }
+  {
+    begin: "^:(.+):$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.drawer.orgmode"
+    end: "^:(END):$"
+    endCaptures:
+      "1":
+        name: "keyword.control.drawer.orgmode"
+    name: "meta.drawer.other.orgmode"
+  }
+  {
+    begin: "(?i)#\\+(BEGIN_LaTeX)$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    end: "(?i)#\\+(END_LaTeX)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "meta.block.latex.orgmode"
+    patterns: [
+      {
+        include: "text.tex.latex"
+      }
+    ]
+  }
+  {
+    begin: "(?i)#\\+(BEGIN_HTML)$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    end: "(?i)#\\+(END_HTML)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "meta.block.html.orgmode"
+    patterns: [
+      {
+        include: "text.html.basic"
+      }
+    ]
+  }
+  {
+    begin: "(?i)#\\+(BEGIN_SRC)\\s+(python)\\s*(.*)$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+      "2":
+        name: "constant.other.language.orgmode"
+      "3":
+        name: "string.other.header-args.orgmode"
+    end: "(?i)#\\+(END_SRC)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "meta.block.source.python.orgmode"
+    patterns: [
+      {
+        include: "source.python"
+      }
+    ]
+  }
+  {
+    begin: "(?i)#\\+(BEGIN_SRC)\\s+(ruby)\\s*(.*)$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+      "2":
+        name: "constant.other.language.orgmode"
+      "3":
+        name: "string.other.header-args.orgmode"
+    end: "(?i)#\\+(END_SRC)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "meta.block.source.ruby.orgmode"
+    patterns: [
+      {
+        include: "source.ruby"
+      }
+    ]
+  }
+  {
+    begin: "(?i)#\\+(BEGIN_SRC)\\s+((?:emacs-)?lisp)\\s*(.*)$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+      "2":
+        name: "constant.other.language.orgmode"
+      "3":
+        name: "string.other.header-args.orgmode"
+    end: "(?i)#\\+(END_SRC)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "meta.block.source.lisp.orgmode"
+    patterns: [
+      {
+        include: "source.lisp"
+      }
+    ]
+  }
+  {
+    begin: "(?i)#\\+(BEGIN_SRC)\\s+(sh)\\s*(.*)$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+      "2":
+        name: "constant.other.language.orgmode"
+      "3":
+        name: "string.other.header-args.orgmode"
+    end: "(?i)#\\+(END_SRC)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "meta.block.source.shell.orgmode"
+    patterns: [
+      {
+        include: "source.shell"
+      }
+    ]
+  }
+  {
+    begin: "(?i)#\\+(BEGIN_(SRC|EXAMPLE))(?:\\s+([\\w-]+)?\\s*(.*))?$"
+    beginCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+      "3":
+        name: "constant.other.language.orgmode"
+      "4":
+        name: "string.other.header-args.orgmode"
+    contentName: "markup.raw.block.orgmode"
+    end: "(?i)#\\+(END_\\2)$"
+    endCaptures:
+      "1":
+        name: "keyword.control.block.orgmode"
+    name: "meta.block.source.other.orgmode"
+  }
+  {
+    begin: "#\\+(OPTIONS):"
+    beginCaptures:
+      "1":
+        name: "keyword.control.pragma.orgmode"
+    end: "$"
+    name: "meta.pragma.options.orgmode"
+    patterns: [
+      {
+        captures:
+          "1":
+            name: "variable.parameter.option.orgmode"
+          "2":
+            name: "string.other.option.orgmode"
+        match: "([^\\s]+):([^\\s]+)"
+        name: "meta.option.orgmode"
+      }
+    ]
+  }
+  {
+    begin: "#\\+(CALL):\\s+[A-Za-z-]+(?:\\[([^\\]]*)\\])?\\(?"
+    beginCaptures:
+      "1":
+        name: "keyword.control.pragma.orgmode"
+      "2":
+        name: "string.other.header-args.orgmode"
+    end: "\\)?([^)]*)$"
+    endCaptures:
+      "1":
+        name: "string.other.header-args.orgmode"
+    name: "meta.pragma.call.orgmode"
+    patterns: [
+      {
+        captures:
+          "1":
+            name: "variable.parameter.header-args.orgmode"
+        match: "(\\w+)="
+        name: "meta.assignment.orgmode"
+      }
+    ]
+  }
+  {
+    captures:
+      "1":
+        name: "keyword.control.pragma.orgmode"
+      "2":
+        name: "string.unquoted.pragma.orgmode"
+    match: "^#\\+([a-zA-Z_-]+): ?(.*)$"
+    name: "meta.pragma.orgmode"
+  }
+  {
+    include: "#inline"
+  }
+]
+repository:
+  "heading-inline":
+    patterns: [
+      {
+        captures:
+          "1":
+            name: "string.quoted.keyword.orgmode"
+        match: ":([^:]*)(?=:)"
+        name: "meta.keyword.orgmode"
+      }
+      {
+        include: "#inline"
+      }
+    ]
+  inline:
+    patterns: [
+      {
+        match: "(?<=^|[.,:;\\s])/[^/]+/(?=$|[.,:;\\s])"
+        name: "markup.italic.orgmode"
+      }
+      {
+        match: "(?<=^|[.,:;\\s])\\*[^*]+\\*(?=$|[.,:;\\s])"
+        name: "markup.bold.orgmode"
+      }
+      {
+        match: "(?<=^|[.,:;\\s])_[^_]+_(?=$|[.,:;\\s])"
+        name: "markup.underline.orgmode"
+      }
+      {
+        match: "(?<=^|[.,:;\\s])([~=]).+?\\1(?=$|[.,:;\\s])"
+        name: "markup.raw.inline.orgmode"
+      }
+      {
+        captures:
+          "1":
+            name: "markup.underline.link.orgmode"
+          "2":
+            name: "string.other.link.orgmode"
+        match: "\\[(?:\\[([^\\]]*)\\])?\\[([^\\]]*)\\]\\]"
+        name: "meta.link.orgmode"
+      }
+      {
+        match: "(?:http|ftp)s?:\\/\\/\\S+"
+        name: "markup.underline.url.orgmode"
+      }
+    ]
+  "list-inline":
+    patterns: [
+      {
+        match: "\\[[ -X]\\]"
+        name: "keyword.operator.checkbox.orgmode"
+      }
+      {
+        include: "#inline"
+      }
+    ]
+  properties:
+    patterns: [
+      {
+        captures:
+          "1":
+            name: "keyword.control.property.orgmode"
+          "2":
+            name: "string.unquoted.propval.orgmode"
+        match: "^:([A-Za-z_]+):\\s(.*)$"
+        name: "meta.property.orgmode"
+      }
+    ]
+scopeName: "text.orgmode"

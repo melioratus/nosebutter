@@ -1,0 +1,285 @@
+* String Manipulation
+** Download Trusted Certificates
+
+#+NAME: gitlab-trusted-certs
+| URL                        | Filename          | Method  |
+|----------------------------+-------------------+---------|
+| http://example.com/xyz.crt | xyz.pem           | curl    |
+| example.net:443            | example.net.pem   | openssl |
+| example.org:443            | example.org.pem   | openssl |
+
+#+BEGIN_QUOTE
+  *Note:* Only the =curl= and =openssl= methods are implemented. All other method values will be skipped.
+#+END_QUOTE
+
+*** Download trusted certificate files.
+
+   #+BEGIN_SRC shell :results verbatim :var TRUSTED_CERTS=gitlab-trusted-certs
+     for url in "${!TRUSTED_CERTS[@]}"; do
+
+         METHOD=${TRUSTED_CERTS[$url]#*$'\n'}
+
+         if [ ${METHOD} == 'curl' ]; then
+             echo "Downloading $url - Method <${METHOD}> is curl"
+             curl $url | openssl x509 -inform der -outform pem > ${TRUSTED_CERTS[$url]%$'\n'*}
+         elif [ ${METHOD} == 'openssl' ]; then
+             echo "Downloading $url - Method <${METHOD}> is openssl"
+             openssl s_client -showcerts -connect $url </dev/null 2>/dev/null | openssl x509 -outform PEM > ${TRUSTED_CERTS[$url]%$'\n'*}
+         else
+             echo "Skipping $url - Method <${METHOD}> is unknown"
+         fi
+
+     done
+   #+END_SRC
+
+   #+RESULTS:
+   : Downloading http://example.com/xyz.crt - Method <curl> is curl
+   : Downloading example.net:443 - Method <openssl> is openssl
+   : Downloading example.org:443 - Method <openssl> is openssl
+
+** Deploy Generate Self-signed Certificate Script(s)
+
+#+NAME: install-gitlab/generate-self-signed-certificate-script-shell-code
+#+BEGIN_SRC shell :eval never
+  #
+  # Create Self-Signed Certificate for GitLab
+  #
+  HOSTNAME_FQDN=`hostname --fqdn`
+  mkdir -p /etc/gitlab/ssl
+  openssl req -x509 -sha256 -out "/etc/gitlab/ssl/${HOSTNAME_FQDN,,}.crt" -days 3650 -keyout "/etc/gitlab/ssl/${HOSTNAME_FQDN,,}.key" -newkey rsa:2048 -subj "/C=ZZ/ST=YY/L=XXX/O=WWWW/OU=VVVVV/CN=${HOSTNAME_FQDN,,}" -batch -nodes
+  #
+  # Deploy Trusted Certificates
+  #
+  mkdir -p /etc/gitlab/trusted-certs
+  #
+  for line in `grep .pem sha256sums.txt`; do
+      EXTENSION=${line##*\.}
+      if [ ${EXTENSION} == "pem" ]; then
+          cp $line /etc/gitlab/trusted-certs
+      fi
+  done
+#+END_SRC
+
+* Code Generation
+** Dependencies
+
+Validate script dependencies in table below:
+
+#+NAME: install-gitlab/install-script-dependencies
+| Dependency    | Provider | Required | Default        | Description          |
+|---------------+----------+----------+----------------+----------------------|
+| YUM_CMD       | OS       | true     | /bin/yum       | YUM executable       |
+| POSTCONF_CMD  | OS       | true     | /sbin/postconf | POSTCONF executable  |
+| SYSTEMCTL_CMD | OS       | true     | /bin/systemctl | SYSTEMCTL executable |
+
+*** Code                                               :noexport:
+
+**** gitlab/gen-install-script-dependencies-shell-code
+
+#+NAME: install-gitlab/gen-install-script-dependencies-shell-code
+#+BEGIN_SRC ruby :var data=install-gitlab/install-script-dependencies :exports results :wrap "SRC shell :eval never"
+  required_commands = Hash.new()
+
+  data.map{ |d|
+    if d[1].downcase == 'os' and d[2].downcase() == 'true' then
+      required_commands[d[0].upcase] = d[3]
+    end
+  }
+  required_commands
+
+  template=<<-ORGSRC
+  #
+  # Required Commands
+  #
+  #{required_commands.map{ |k,v| 
+                           "readonly #{k}=#{v}"
+                           }.join("\n")}
+
+  #
+  # Validate Required Commands Exist
+  #
+  for cmd in #{required_commands.map{|k| "${#{k[0]}}"}.join(' ')}; do
+      echo ${cmd}
+      if [ -s ${cmd} ]; then
+         echo "STATUS: Check Required Command Succeeded. Found '${cmd}'."
+      else
+         echo "ERROR: Check Required Command Failed. '${cmd}' Not Found!"
+         exit 1
+      fi
+  done
+
+  ORGSRC
+
+#+END_SRC
+
+#+RESULTS: install-gitlab/gen-install-script-dependencies-shell-code
+#+BEGIN_SRC shell :eval never
+#
+# Required Commands
+#
+readonly YUM_CMD=/bin/yum
+readonly POSTCONF_CMD=/sbin/postconf
+readonly SYSTEMCTL_CMD=/bin/systemctl
+readonly FAKE_CMD=/bin/false
+
+#
+# Validate Required Commands Exist
+#
+for cmd in ${YUM_CMD} ${POSTCONF_CMD} ${SYSTEMCTL_CMD} ${FAKE_CMD}; do
+    echo ${cmd}
+    if [ -s ${cmd} ]; then
+       echo "STATUS: Check Required Command Succeeded. Found '${cmd}'."
+    else
+       echo "ERROR: Check Required Command Failed. '${cmd}' Not Found!"
+       exit 1
+    fi
+done
+
+#+END_SRC
+
+** Install OS Packages
+
+Install the packages listed in the table below:
+
+*** OS Package List
+
+#+NAME: install-gitlab/os-package-list
+| Package-Name            | Purpose                         |
+|-------------------------+---------------------------------|
+| emacs.x86_64            | Automated Documentation Support |
+| python.x86_64           | Automated Documentation Support |
+| gpgme.x86_64            | Automated Documentation Support |
+| graphviz.x86_64         | Automated Documentation Support |
+| vim-enhanced.x86_64     | Automated Documentation Support |
+| postfix.x86_64          | Email Support                   |
+| mailx.x86_64            | Email Support                   |
+| rsync.x86_64            | Backup Support                  |
+| openssl.x86_64          | Crypto Support                  |
+| openldap-clients.x86_64 | LDAP Support                    |
+
+**** Code                                             :noexport:
+
+***** install-gitlab/gen-os-package-list-code
+
+#+NAME: install-gitlab/gen-os-package-list-shell-code
+#+BEGIN_SRC ruby :var data=install-gitlab/os-package-list :exports results :wrap "SRC shell :eval never"
+  code_template=<<-ORGSRC
+  #
+  # Install OS Packages
+  #
+  for name in #{data.map{|d| d[0]}.join(' ')}; do
+      ${YUM_CMD} install -y ${name}
+  done
+
+  ORGSRC
+#+END_SRC
+
+#+RESULTS: install-gitlab/gen-os-package-list-shell-code
+#+BEGIN_SRC shell :eval never
+#
+# Install OS Packages
+#
+for name in emacs.x86_64 python.x86_64 gpgme.x86_64 graphviz.x86_64 vim-enhanced.x86_64 postfix.x86_64 mailx.x86_64 rsync.x86_64 openssl.x86_64 openldap-clients.x86_64; do
+    ${YUM_CMD} install -y ${name}
+done
+
+#+END_SRC
+
+** Setup OS Email Settings
+
+Email specific settings are listed below:
+
+#+NAME: install-gitlab/os-email-settings
+| Property-Name  | Property-Value             |
+|----------------+----------------------------|
+| relayhost      | mailrelay.example.com |
+| inet_protocols | ipv4                       |
+
+*** Code                                               :noexport:
+
+**** install-gitlab/gen-setup-os-email-settings-shell-code
+
+#+NAME: install-gitlab/gen-setup-os-email-settings-shell-code
+#+BEGIN_SRC ruby :var data=install-gitlab/os-email-settings :exports results :wrap "SRC shell :eval never"
+  code_template=<<-ORGSRC
+  #
+  # Setup OS Email Settings
+  #
+  #{data.map{|d| "/sbin/postconf -e #{d.join('=')}"}.join("\n")}
+
+  ${SYSTEMCTL_CMD} enable postfix.service
+  ${SYSTEMCTL_CMD} reload postfix.service
+
+  ORGSRC
+#+END_SRC
+
+#+RESULTS: install-gitlab/gen-setup-os-email-settings-shell-code
+#+BEGIN_SRC shell :eval never
+#
+# Setup OS Email Settings
+#
+/sbin/postconf -e relayhost=mailrelay.example.com
+/sbin/postconf -e inet_protocols=ipv4
+
+${SYSTEMCTL_CMD} enable postfix.service
+${SYSTEMCTL_CMD} reload postfix.service
+
+#+END_SRC
+
+** Install GitLab Packages
+
+# Need to find better way to get the filename values from multiple tables in org file
+
+#+NAME: install-gitlab/gen-gitlab-packages-filenames-lines
+#+BEGIN_SRC ruby :var data=gitlab-packages :results drawer replace 
+  output = <<-BLOCK_TEMPLATE
+
+  ,#+NAME: install-gitlab/gen-gitlab-packages-filenames-lines-shell-code
+  ,#+BEGIN_SRC shell :noweb yes :eval never
+  #{data.map{|d| %Q^<<elisp/get-property-value(property-name="Filename",data=#{d[0]})>>^ }.uniq.join(" ")}
+  ,#+END_SRC
+  BLOCK_TEMPLATE
+#+END_SRC
+
+#+RESULTS: install-gitlab/gen-gitlab-packages-filenames-lines
+:RESULTS:
+
+#+NAME: install-gitlab/gen-gitlab-packages-filenames-lines-shell-code
+#+BEGIN_SRC shell :noweb yes :eval never
+<<elisp/get-property-value(property-name="Filename",data=gitlab-ce-server-package-info)>> <<elisp/get-property-value(property-name="Filename",data=gitlab-ci-multi-runner-package-info)>>
+#+END_SRC
+:END:
+
+#+NAME: install-gitlab/gen-install-gitlab-packages-shell-code
+#+BEGIN_SRC shell :eval never :noweb yes 
+  #
+  # Install GitLab Packages
+  #
+  for filename in <<install-gitlab/gen-gitlab-packages-filenames-lines-shell-code>>; do
+      ${YUM_CMD} localinstall -y ${filename}
+  done
+#+END_SRC
+
+* Command Substitution
+** Backticks =``= vs. =$()=
+- Backtick syntax is officially deprecated?
+*** Backticks Can Remove Double Quote
+This example was derived from [[https://stackoverflow.com/a/36978563/951721]]
+#+BEGIN_SRC shell :eval never
+$ echo "`echo \"test\" `"
+test
+$ echo "$(echo \"test\" )"
+"test"
+$ VAR=`echo "test"`
+$ echo $VAR
+test
+$ VAR=`echo \"test\"`
+$ echo $VAR
+"test"
+$ VAR=$(echo "test")
+$ echo $VAR
+test
+$ VAR=$(echo \"test\")
+$ echo $VAR
+"test"
+#+END_SRC

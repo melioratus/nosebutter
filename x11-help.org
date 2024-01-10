@@ -1,0 +1,13 @@
+* X11 forwarding request failed on channel 0
+  1. Edit ~/etc/ssh/sshd_config~ file.
+     
+     - From :: 
+       : #AddressFamily any
+     - To :: 
+       : AddressFamily inet
+     
+  2. Reload sshd configuration as =root=
+  
+     #+BEGIN_SRC shell
+       systemctl reload sshd.service
+     #+END_SRC

@@ -1,0 +1,51 @@
+#+NAME: expand-src-block
+#+BEGIN_SRC elisp :var block-name="" :var datum="" :var info="" :var lang="" :var body="" :exports none
+  (save-excursion
+    (org-babel-goto-named-src-block block-name)
+    (setq datum (org-element-at-point))
+    t)
+  (setq info (org-babel-get-src-block-info nil datum))
+  (setq lang (nth 0 info))
+  (setq body (org-babel-expand-src-block nil info))
+  (format "%s" body)
+#+END_SRC
+
+* Export with variables
+:PROPERTIES:
+:header-args: :var status="not_finished"
+:END:
+
+#+NAME: example-table
+| 1 |
+| 2 |
+| 3 |
+| 4 |
+
+Here we import a table.          
+#+NAME: table-length
+#+BEGIN_SRC R :var table=example-table :tangle "./export_var.R" :exports none
+status <- "finished"
+dim(table)
+#+END_SRC
+
+# Export the expanded code
+#+BEGIN_SRC R :noweb yes :exports both 
+ <<expand-src-block(block-name="table-length")>>
+#+END_SRC
+
+Here we think we import a table
+#+NAME: table-str-length
+#+BEGIN_SRC R :var table="./filename_example-table.tsv" :tangle "./export_var.R" :exports none
+length(table)
+print(status)
+#+END_SRC
+
+# Export the expanded code
+#+BEGIN_SRC R :noweb yes :exports both 
+ <<expand-src-block(block-name="table-str-length")>>
+#+END_SRC
+
+*** Some subcase
+
+If I run with the data in ="./other_data.tsv"=
+#+call: table-str-length[ :var table="./other_data.tsv"]()

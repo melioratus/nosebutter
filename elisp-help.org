@@ -1,0 +1,70 @@
+** Using a ~lambda~ function with ~mapcar~
+   Executing the code below:
+   
+    #+begin_src elisp :exports both
+    (mapcar (lambda (x) (format "%s world!" x)) '("Hi" "Hello" "Howdy"))
+    #+end_src
+
+
+   Returns the following results:
+    #+results:
+    : ("Hi world!" "Hello world!" "Howdy world!")
+    
+** Reading from ~stdin~ using ~emacs --script~ and ~elisp~
+   
+   #+BEGIN_QUOTE
+   *Note:* Code block from [[http://superuser.com/a/487329/114596]]
+   #+END_QUOTE
+   
+   #+BEGIN_SRC shell :shebang "#!/usr/bin/emacs --script" :tangle emacs-read-stdin.sh 
+     (with-temp-buffer
+       (progn
+         (condition-case nil
+         (let (line)
+      (while (setq line (read-from-minibuffer ""))
+             (insert line)
+             (insert "\n")))
+      (error nil))
+         (princ (buffer-string))
+         ))
+   #+END_SRC
+
+   - Below is the code that prints out the input
+      #+BEGIN_QUOTE
+        (princ (buffer-string))
+      #+END_QUOTE
+      
+** Get Major Mode of Current Buffer
+
+   - Used the following references: 
+      - https://www.gnu.org/software/emacs/manual/html_node/elisp/Buffer-Names.html
+      - https://stackoverflow.com/a/11488539/951721
+   
+
+   #+BEGIN_SRC elisp
+      (buffer-local-value 'major-mode (get-buffer (buffer-name)))
+   #+END_SRC
+
+** Pass Varible from one lambda to another using [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Backquote.html][Backquote]] syntax
+
+Answer code from [[https://emacs.stackexchange.com/a/42381/388]]
+
+#+BEGIN_SRC elisp
+  (let ((var "value-of-variable"))
+    (async-start
+     ;; What to do in the child process
+     `(lambda ()
+        (sleep-for 3)
+        ,(format "This is a %s" var))
+
+         ;; What to do when it finishes
+         (lambda (result)
+           (message "Async process done, result should be 222: %s"
+                    result))))
+#+END_SRC
+
+#+RESULTS:
+: #<process emacs>
+
+After timeout the miessage displays
+: Async process done, result should be 222: This is a value-of-variable

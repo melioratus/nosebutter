@@ -1,0 +1,31 @@
+*** Useful snippet to add to bottom of .emacs
+
+#+BEGIN_SRC elisp
+(add-hook 'after-init-hook 'my-after-init-hook)
+;;
+(defun my-after-init-hook ()
+  ;; do things after package initialization
+  ;; Added Manually
+  ;;
+  (load-theme 'spacemacs-dark)
+  ;;
+  (require 'ox-reveal)
+  ;;
+  ;; Enable spaceline-emacs-theme
+  (require 'spaceline-config)
+  (spaceline-emacs-theme)
+  ;;
+  (eval-after-load "dired-aux"
+    '(add-to-list 'dired-compress-file-suffixes 
+		  '("\\.zip\\'" ".zip" "unzip")))
+  ;;
+  ;; Enable org-bullets
+  ;;
+  (require 'org-bullets)
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+  ;;
+  ;; replace buffer-menu with ibuffer
+  ;;
+  (global-set-key (kbd "C-x C-b") 'ibuffer)
+  )
+#+END_SRC

@@ -1,0 +1,75 @@
+* Find full directory path where emacs expects ditaa.jar to be
+
+This code is copied from ob-ditaa.el
+#+BEGIN_SRC org 
+  ,#+begin_src elisp
+  (expand-file-name
+                                 "ditaa.jar"
+                                 (file-name-as-directory
+                                  (expand-file-name
+                                   "scripts"
+                                   (file-name-as-directory
+                                    (expand-file-name
+                                     "../contrib"
+                                     (file-name-directory (org-find-library-dir "org")))))))
+  ,#+end_src
+
+#+END_SRC
+
+#+BEGIN_QUOTE
+*Note:* This path in your setup may be different, so you should run the code above to check then adjust the instructions to meet your specific path. 
+#+END_QUOTE
+
+#+BEGIN_SRC org
+
+  ,#+RESULTS:
+  : /usr/share/emacs/24.5/lisp/contrib/scripts/ditaa.jar
+
+#+END_SRC
+
+
+* Copy =ditaa.jar= and =DitaaEps.jar= into expected directory, e.g. =/usr/share/emacs/24.5/lisp/contrib/scripts=
+
+* *Windows specific step* - Confirm that =ditaa.jar= and =DitaaEps.jar= are unblocked otherwise Windows OS will block execution.
+
+* *Cygwin specific step* - Create =call-ditaa.sh= wrapper script.
+
+#+BEGIN_QUOTE
+*Note:* The Oracle JSE for Windows expects Windows paths not Cygwin paths, so we needed to convert using =cygpath= command. 
+#+END_QUOTE 
+
+#+BEGIN_SRC org
+
+  ,#+begin_src sh :tangle yes :shebang #!/usr/bin/env bash
+
+      #
+      # Convert to windows file paths.
+      #
+
+      java $1 $2 "$(cygpath -w $3)" "$(cygpath -w $4)" "$(cygpath -w $5)"
+
+
+  ,#+end_src
+
+#+END_SRC
+
+* *Cygwin specific Step* - Customize org-mode to use wrapper script instead calling java directly.
+  : Org Babel Ditaa Java Cmd: /usr/share/emacs/24.5/lisp/contrib/scripts/call-ditaa.sh
+* Customize org-mode to =Org Ditaa Jar Path= to expected path, e.g. =/usr/share/emacs/24.5/lisp/contrib/scripts/ditaa.jar=
+* Apply & Save customization
+* Test Updated =ditaa= Settings
+
+#+BEGIN_SRC org
+
+    ,#+begin_src ditaa :file ./helloworld.png
+    +----------------+
+    | Hello World!!! |
+    |                |
+    +----------------+
+    ,#+end_src
+
+    ,#+RESULTS:
+    [[file:./helloworld.png]]
+
+
+#+END_SRC

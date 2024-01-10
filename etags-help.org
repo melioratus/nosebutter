@@ -1,0 +1,10 @@
+** Mapping noweb references to named objects
+
+#+begin_src shell :eval never
+  # Map NOWEB References
+  etags --langdef=orgmode --langmap=orgmode:.org   --regex-orgmode="/<<([^><\[\(\{#]+)([^><]+)>>/\1/d,definition/" -f ./TAGS -e -R ./myfile.org
+  etags --append --langdef=orgmode --langmap=orgmode:.org   --regex-orgmode="/^[ ]*#[+][Nn][Aa][Mm][Ee]: +([^ ]+)/<<\1>>/d,definition/" -f ./TAGS -e -R ./myfile.org
+  etags --append --langdef=orgmode --langmap=orgmode:.org   --regex-orgmode="/^[ ]*#[+][Nn][Aa][Mm][Ee]: +([^ ]+)/<<\1/d,definition/" -f ./TAGS -e -R ./myfile.org
+  # Map NAME back to self
+  etags --append --langdef=orgmode --langmap=orgmode:.org   --regex-orgmode="/^[ ]*#[+][Nn][Aa][Mm][Ee]: +([^ ]+)/\1/d,definition/" -f ./TAGS -e -R ./myfile.org
+#+end_src

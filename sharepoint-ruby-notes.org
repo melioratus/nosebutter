@@ -1,0 +1,30 @@
+* Notes about installing curb gem under cygwin
+: gem install curb -- -- --with-curl-lib=/usr/x86_64-w64-mingw32/sys-root/mingw/bin --with-curl-include=/usr/x86_64-w64-mingw32/sys-root/mingw/include/curl
+
+: Resource http://www.basson.at/blog/installing-curb-on-windows
+
+* Notes about using sharepoint-ruby gem
+
+#+BEGIN_SRC ruby :results replace output :var username=(read-string "Username: ") :var password=(read-passwd "Password: ") :var site_hostname="mysite.sharepoint.example" :var site_path="path/to/blog"
+  require 'sharepoint-ruby'
+  require 'sharepoint-http-auth'
+
+  site = Sharepoint::Site.new site_hostname, site_path
+
+  site.session = Sharepoint::HttpAuth::Session.new site
+  site.session.authenticate username, password
+  site.protocole = 'http' # default protocole is https: don't forget to set this if you use http
+
+  lists = site.lists
+  for l in lists
+    puts l.title
+  end
+#+END_SRC
+
+# This Curl Command WOrks 
+# #curl --ntlm -u username:password -d "{Title: 'Added with curl'}" -H content-type:application/json -X POST "http://sharepoint.hostname/full/path/of/site/_vti_bin/listdata.svc/MyCustomList"
+
+
+* Notes about installing gem sharepoint-ruby
+: # gem install specific_install
+: # gem specific_install -l https://github.com/Plaristote/sharepoint-ruby.git

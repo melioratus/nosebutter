@@ -1,0 +1,74 @@
+# -*- mode: org; -*-
+
+Before code-block-shell
+
+#+BEGIN_SRC shell :tangle code-block-shell.sh :eval never 
+  #!/usr/bin/env bash
+
+  # Comment
+
+  function myfunction() {
+      echo 'You called myfunction()'
+  }
+
+  VARIABLE_NAME=`hostname`
+
+  case ${VARIABLE_NAME} in
+      localhost)
+          echo "So you're local."
+          myfunction();
+          ;;
+      ,*)
+          echo ${VARIABLE_NAME}
+          ;;
+  esac
+
+  exit
+#+END_SRC
+
+After code-block-shell
+
+Before code-block-ruby
+
+#+BEGIN_SRC ruby :tangle code-block-ruby.rb :eval never 
+  def times_2(data)
+    data.map{|d| d*2}
+  end
+
+  data=[1,2,3,4]
+
+  times_2(data)
+#+END_SRC
+
+After code-block-ruby
+
+Before code-block-python
+
+#+BEGIN_SRC python :tangle code-block-python.py :session *python* :results replace value :eval never 
+  def times_2(data):
+    return map(lambda d: d*2, data)
+
+  data=[1,2,3,4]
+
+  times_2(data)
+#+END_SRC
+
+After code-block-python
+
+Before code-block-sql
+
+#+BEGIN_SRC sql :tangle code-block-sql.sql :results replace value :eval never 
+  select 'x' from tab;
+#+END_SRC
+
+After code-block-sql
+
+Before code-block-css
+
+#+BEGIN_SRC css :tangle code-block-css.css :results replace value :eval never 
+  .syntax--italic.syntax--gmrtsts  {
+    font-style: italic;
+  }
+#+END_SRC
+
+After code-block-css

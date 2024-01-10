@@ -1,0 +1,49 @@
+* Export with variables
+#+NAME: example-table
+| 1 |
+| 2 |
+| 3 |
+| 4 |
+
+Here we import a table.          
+#+BEGIN_SRC R
+  table <- local({
+       con <- textConnection(
+         "\"1\"
+  \"2\"
+  \"3\"
+  \"4\""
+       )
+       res <- utils::read.table(
+         con,
+         header    = FALSE,
+         row.names = NULL,
+         sep       = "\t",
+         as.is     = TRUE
+       )
+       close(con)
+       res
+     })
+  status <- "finished"
+  dim(table)
+#+END_SRC
+
+#+RESULTS: 
+| 4 |
+| 1 |
+
+Here we think we import a table
+#+BEGIN_SRC R
+  table <- "./filename_example-table.tsv"
+  length(table)
+  print(status)
+#+END_SRC
+
+#+RESULTS: 
+: not_finished
+
+*** Some subcase
+
+If I run with the data in ="./other_data.tsv"=
+#+RESULTS: 
+: not_finished

@@ -1,0 +1,337 @@
+*** Static Example 1
+[[file:graphviz-static-ex1.svg][graphviz-static-ex1.svg]]
+#+name: static-ex1
+#+begin_src dot :file graphviz-static-ex1.svg :cmd dot
+  digraph Graph_1 {
+
+          node [shape=record];
+          //rankdir="LB";
+          //center=true;
+          //clusterrank="global";
+          //orientation="landscape";
+          //pagedir="LR";
+          //overlap=false;
+          //page=8;
+          //size="7,5";
+          //splines="ortho";
+          nodesep=0.75;
+          //len=2;
+         
+          subgraph cluster_application {
+
+                   label="Application";
+       
+                   subgraph cluster_zone_c {
+                   
+                          label="Zone C";
+                          User2 [label="User2"];
+                         LB2 [shape=circle, style=filled, fillcolor=lightgray, label="LB2"];
+
+                          subgraph cluster3 {
+                           label="Cluster 3";
+                            //fillcolor="whitesmoke";
+                            //style="filled";
+                            HostE [label="HostE"];
+                            HostG [label="HostG"];
+                           }
+
+                          subgraph cluster4 {
+
+                            label="Cluster 4";
+                            //fillcolor="whitesmoke";
+                            //style="filled";
+                            HostF [label="HostF"];
+                            HostH [label="HostH"];
+                           }       
+                   }
+
+
+                   subgraph cluster_zone_b {
+
+                            label="Zone B";
+
+                            HostC [label="HostC"];
+                            HostD [label="HostD"];
+                   }       
+
+          subgraph cluster_zone_a {
+
+                   label="Zone A";
+
+                   LB1 [shape=circle, style=filled, fillcolor=lightgray, label="LB1"];
+
+                            HostA [label="HostA"];
+                            HostB [label="HostB"];
+          }
+
+       }
+
+       // Now add Connections between Nodes
+
+       User1 -> LB1 [label="123"];
+
+       //LB1 -> LB1 [label="12 to 123"]
+       LB1 -> HostA [label="1234"]; 
+       LB1 -> HostB [label="1234"]; 
+       
+       HostA -> HostC [label="2345"];
+       HostB -> HostD [label="2345"];
+
+       HostE -> HostG [label="3456", constraint=false];
+       HostF -> HostH [label="3456", style=dashed];
+
+       HostG -> HostC [label="2345"];
+       HostG -> HostH [label="4567"];
+       HostG -> HostD [label="2345", headport="nw", tailport="se"];
+
+       //LB2 -> LB2 [label="12 to 123"]
+       LB2 -> HostE [label="1234"];
+       LB2 -> HostF [label="1234", style=dashed];
+       LB2 -> HostG [label="2345"];
+       //LB2 -> HostH [label="2345", constraint=false];
+       
+       User2 -> LB2 [label="123"];
+
+       
+
+  }
+#+end_src
+
+#+RESULTS: static-ex1
+
+** Dynamic Examples
+
+*** Dynamic Example 2
+[[file:graphviz-dynamic-ex2.svg]]
+
+
+**** Gather Info
+
+#+name: ex2-graphs-table
+| *Type* | *Name*              | *Property* | *Value*        |
+|--------+---------------------+------------+----------------|
+| graph  | cluster_application | label      | Application    |
+| graph  | cluster_application | subgraph   | cluster_zone_c |
+| graph  | cluster_application | subgraph   | cluster_zone_b |
+| graph  | cluster_application | subgraph   | cluster_zone_a |
+|--------+---------------------+------------+----------------|
+
+#+name: ex2-subgraphs-table
+| *Type*   | *Name*                           | *Property* | *Value*          |
+|----------+----------------------------------+------------+------------------|
+| subgraph | cluster_zone_c                   | label      | Zone C           |
+| subgraph | cluster_zone_c                   | node       | User2            |
+| subgraph | cluster_zone_c                   | node       | LB2              |
+| subgraph | cluster_zone_c                   | subgraph   | cluster_zone_c_1 |
+| subgraph | cluster_zone_c                   | subgraph   | cluster_zone_c_2 |
+|----------+----------------------------------+------------+------------------|
+| subgraph | cluster_zone_c->cluster_zone_c_1 | label      | Cluster Zone C1  |
+| subgraph | cluster_zone_c->cluster_zone_c_1 | node       | HostE            |
+| subgraph | cluster_zone_c->cluster_zone_c_1 | node       | HostG            |
+|----------+----------------------------------+------------+------------------|
+| subgraph | cluster_zone_c->cluster_zone_c_2 | label      | Cluster Zone C2  |
+| subgraph | cluster_zone_c->cluster_zone_c_2 | node       | HostF            |
+| subgraph | cluster_zone_c->cluster_zone_c_2 | node       | HostH            |
+|----------+----------------------------------+------------+------------------|
+| subgraph | cluster_zone_b                   | label      | Zone B           |
+| subgraph | cluster_zone_b                   | node       | HostC            |
+| subgraph | cluster_zone_b                   | node       | HostD            |
+|----------+----------------------------------+------------+------------------|
+| subgraph | cluster_zone_a                   | label      | Zone A           |
+| subgraph | cluster_zone_a                   | node       | HostA            |
+| subgraph | cluster_zone_a                   | node       | HostB            |
+| subgraph | cluster_zone_a                   | node       | LB1              |
+|----------+----------------------------------+------------+------------------|
+
+
+#+name: ex2-nodes-table
+| *Type* | *Name* | *Property* | *Value* |
+|--------+--------+------------+---------|
+| node   | HostA  | label      | HostA   |
+| node   | HostB  | label      | HostB   |
+| node   | HostC  | label      | HostC   |
+| node   | HostD  | label      | HostD   |
+| node   | HostE  | label      | HostE   |
+| node   | HostF  | label      | HostF   |
+| node   | HostG  | label      | HostG   |
+| node   | HostH  | label      | HostH   |
+| node   | User1  | label      | User1   |
+| node   | User2  | label      | User2   |
+| node   | LB1    | label      | LB1     |
+| node   | LB2    | shape      | circle  |
+| node   | LB1    | shape      | circle  |
+| node   | LB2    | label      | LB2     |
+|--------+--------+------------+---------|
+
+
+#+name: ex2-edges-table
+| *Type* | *Source* | *Target* | *Property* | *Value* |
+|--------+----------+----------+------------+---------|
+| edge   | User1    | LB1      | label      |     123 |
+|--------+----------+----------+------------+---------|
+| edge   | LB1      | HostA    | label      |    1234 |
+| edge   | LB1      | HostB    | label      |    1234 |
+| edge   | HostA    | HostC    | label      |    2345 |
+| edge   | HostB    | HostD    | label      |    2345 |
+|--------+----------+----------+------------+---------|
+| edge   | LB2      | HostE    | label      |    1234 |
+| edge   | HostE    | HostG    | label      |    3456 |
+| edge   | HostE    | HostG    | constraint |   false |
+|--------+----------+----------+------------+---------|
+| edge   | LB2      | HostF    | label      |    1234 |
+| edge   | LB2      | HostF    | style      |  dashed |
+| edge   | HostF    | HostH    | label      |    3456 |
+| edge   | HostF    | HostH    | style      |  dashed |
+|--------+----------+----------+------------+---------|
+| edge   | LB2      | HostG    | label      |    2345 |
+| edge   | HostG    | HostC    | label      |    2345 |
+| edge   | HostG    | HostD    | label      |    2345 |
+| edge   | HostG    | HostD    | headport   |      nw |
+| edge   | HostG    | HostD    | tailport   |      se |
+| edge   | HostG    | HostH    | label      |    4567 |
+|--------+----------+----------+------------+---------|
+| edge   | User2    | LB2      | label      |     123 |
+|--------+----------+----------+------------+---------|
+
+  
+
+**** Default Settings
+
+
+#+name: ex2-graphs-defaults-table
+| *Type* | *Property* | *Value*      |
+|--------+------------+--------------|
+| graph  | rankdir    | LR           |
+| graph  | fontname   | Trebuchet MS |
+|--------+------------+--------------|
+| node   | color      | #ddaa66      |
+| node   | fillcolor  | #ffeecc      |
+| node   | fontcolor  | #775500      |
+| node   | fontname   | Trebuchet MS |
+| node   | fontsize   | 8            |
+| node   | margin     | 0.0          |
+| node   | penwidth   | 1            |
+| node   | shape      | box          |
+| node   | style      | filled       |
+|--------+------------+--------------|
+| edge   | arrowsize  | 0.5          |
+| edge   | color      | #999999      |
+| edge   | dir        | forward      |
+| edge   | fontcolor  | #444444      |
+| edge   | fontname   | Verdana      |
+| edge   | fontsize   | 6            |
+| edge   | weight     | 1            |
+|--------+------------+--------------|
+
+
+***** TODO Do code to make tables below dynamically from ex2-graphs-defaults-table
+
+#+begin_src ruby :var graph_name="Application" :var g_defaults=ex2-graphs-defaults-table  :var g_graphs=ex2-graphs-table[,1:-1]  :var g_subgraphs=ex2-subgraphs-table[,1:-1] :var g_nodes=ex2-nodes-table[,1:-1] :var g_edges=ex2-edges-table[,1:-1] :colnames yes :results replace :wrap src dot :file ex2-output.dot
+
+  require "ruby-graphviz"
+
+  g = nil
+  g = GraphViz::new( graph_name , {:type =>"digraph"})
+
+  # Setup Defaults
+  g_defaults.map{ |d|
+    case d[0]
+    when "graph"
+      # Setup Graph Defaults
+      # Note: graph name & type must assigned a object initialization 
+      g.graph[d[1] => d[2]] unless d[1].downcase == "type"
+    when "node"
+      # Setup Node Defaults
+      g.node[ d[1] => d[2]]
+    when "edge"
+      # Setup Edge Defaults
+      g.edge[ d[1] => d[2]]
+    else
+      # Skip unknown defaults
+    end
+  }
+
+  # Setup Graph
+  g_graphs.map{ |d|
+    case d[1]
+    when "node"
+      g.add_node(d[2])
+    when "subgraph"
+      g.add_graph(d[2])
+    when "edge"
+      # Don't add edges here
+    else
+      # Update Defaults
+      g[ d[1] => d[2] ]
+    end
+  }
+
+  # Setup Subgraphs
+  g_subgraphs.map{ |d|
+    ### Fix Nested Subgraphs ####
+    case d[0].split(/->/).length
+    when 1
+      case d[1]
+      when "node"
+        g.subgraph(d[0]).add_node(d[2])
+      when "subgraph"
+        g.subgraph(d[0]).add_graph(d[2])
+      when "edge"
+      # Don't add edges here
+      else
+        # Update Subgraph Defaults
+        g.subgraph(d[0])[ d[1] => d[2] ]
+      end
+    when 2
+      sg1,sg2 = d[0].split(/->/)
+      case d[1]
+      when "node"
+        g.subgraph(sg1).add_graph(sg2).add_node(d[2])
+      when "subgraph"
+        g.subgraph(sg1).add_graph(sg2).add_graph(d[2])
+      when "edge"
+        # Don't add edges here
+      else
+        # Update Subgraph Defaults
+        g.subgraph(sg1).subgraph(sg2)[ d[1] => d[2] ]
+      end
+    else
+      # Do nothing  
+    end
+    
+  }
+
+  # Setup Nodes
+  g_nodes.map{ |d| d[0]}.uniq.map{ |u| 
+    Array[u, g_nodes.select{ |e| 
+            Array[e[0]== u].inject(&:&)}.uniq.map{ |f| 
+            g_nodes.map.select{ |e| 
+              Array[e[0] == f[0]].inject(&:&)}}.map{|a| 
+            a.map{|b| b[1..-1]}}.map{|h| Hash[h]}.uniq ]}.map{|d| 
+    
+    g.add_node(d[0])[*d[1]]
+
+       
+      }
+
+  # Setup Edges
+  g_edges.map{ |d| d[0..1]}.uniq.map{ |u| 
+    Array[u[0],u[1], g_edges.select{ |e| 
+            Array[e[0]== u[0],e[1]==u[1]].inject(&:&)}.uniq.map{ |f| 
+            g_edges.map.select{ |e| 
+              Array[e[0] == f[0], e[1] == f[1]].inject(&:&)}}.map{|a| 
+            a.map{|b| b[2..-1]}}.map{|h| Hash[h]}.uniq ]}.map{|d| 
+    
+    g.add_edge(d[0],d[1])[*d[2]]
+
+       
+      }
+
+    # Generate Graph - Fix \N
+    g.output( :canon => String ).gsub(%r{([\\])+N},"\\1\\1N")
+#+end_src
+
+#+RESULTS:
+#+BEGIN_src dot
+[[file:ex2-output.dot]]
+#+END_src

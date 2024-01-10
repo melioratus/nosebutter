@@ -1,0 +1,38 @@
+* Filling a.k.a Wrapping Comment Blocks
+
+- original [[https://emacs.stackexchange.com/q/33392/388][example]]
+   
+  #+BEGIN_SRC js :eval never 
+    /* asdasdasd asdasdasd asdasdasd  */
+    /* asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd */
+    /* asdasdasd asdasdasd asdasdasd  asdasdasd asdasdasd asdasdasd */
+    /* asdasdasd asdasdasd */
+    /* asdasdasd asdasdasd asdasdasd asdasdasd */
+  #+END_SRC
+
+- ~uncomment-region~ then ~fill-region~ then ~comment-region~
+
+  #+BEGIN_SRC js :eval never 
+    // asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd
+    // asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd
+    // asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd
+  #+END_SRC
+
+- ~comment-or-uncomment-region~ then ~fill-region~ then ~commment-box~ then ~untabify~
+
+   #+BEGIN_SRC js :eval never 
+     ///////////////////////////////////////////////////////////////////////////
+     // asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd //
+     // asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd //
+     // asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd asdasdasd           //
+     ///////////////////////////////////////////////////////////////////////////
+   #+END_SRC
+
+* Workaround for =~/.tramp_history= issue
+
+1. Run using ~M-:~
+
+   #+BEGIN_SRC elisp :results silent 
+     ;; Workaround for ~/.tramp_history issue
+     (setq tramp-histfile-override "/dev/null")
+   #+END_SRC

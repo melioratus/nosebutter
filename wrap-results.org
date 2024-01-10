@@ -1,0 +1,213 @@
+* Examples of ~:wrap~ header
+** Use =C-c= =C-v= =C-j= =w <tab>= to create a ~:wrap~ header
+
+- Before
+
+  #+begin_src org :exports code :results drawer replace
+
+    ,#+begin_src sh :results scalar replace  
+      echo "Hello World"
+    ,#+end_src
+
+    ,#+RESULTS:
+    : Hello World
+
+
+  #+end_src
+
+  #+RESULTS:
+  :RESULTS:
+
+  #+begin_src sh :results scalar replace  
+    echo "Hello World"
+  #+end_src
+
+  #+RESULTS:
+  : Hello World
+
+  :END:
+
+- After
+
+  #+begin_src org :exports code :results drawer replace 
+
+    ,#+begin_src sh :results scalar replace :wrap my_wrapper 
+      echo "Hello World"
+    ,#+end_src
+
+    ,#+RESULTS:
+    ,#+BEGIN_my_wrapper
+    Hello World
+    ,#+END_my_wrapper
+
+
+  #+end_src
+
+  #+RESULTS:
+  :RESULTS:
+
+  #+begin_src sh :results scalar replace :wrap my_wrapper 
+    echo "Hello World"
+  #+end_src
+
+  #+RESULTS:
+  #+BEGIN_my_wrapper
+  Hello World
+  #+END_my_wrapper
+
+  :END:
+
+** Does ~:wrap~ header allow spaces?
+
+- Answer: *Yes*
+
+  #+begin_src org :exports code :results drawer replace
+
+    ,#+begin_src sh :wrap WORD1 WORD2
+      echo "Does ~:wrap~ header allow spaces?"
+    ,#+end_src
+
+    ,#+RESULTS:
+    ,#+BEGIN_WORD1 WORD2
+    Does ~:wrap~ header allow spaces?
+    ,#+END_WORD1
+
+
+  #+end_src
+
+  #+RESULTS:
+  :RESULTS:
+
+  #+begin_src sh :wrap WORD1 WORD2
+    echo "Does ~:wrap~ header allow spaces?"
+  #+end_src
+
+  #+RESULTS:
+  #+BEGIN_WORD1 WORD2
+  Does ~:wrap~ header allow spaces?
+  #+END_WORD1
+
+  :END:
+
+
+** Does ~:wrap~ header allow dynamic values?
+
+- Answer: *Yes* but must call dynamic values using elisp.
+
+  #+begin_src org :exports code :results drawer replace
+
+    ,#+NAME: a_named_comment
+    ,#+BEGIN_COMMENT
+    VALUE_FROM_NAMED_COMMENT
+    ,#+END_COMMENT
+
+    ,#+CALL: a_named_comment()
+
+    ,#+RESULTS:
+    : VALUE_FROM_NAMED_COMMENT
+
+    ,#+begin_src sh :wrap (org-sbe a_named_comment)
+      echo "Does ~:wrap~ header allow dynamic values?"
+    ,#+end_src
+
+    ,#+RESULTS:
+    ,#+BEGIN_VALUE_FROM_NAMED_COMMENT
+    Does ~:wrap~ header allow dynamic values?
+    ,#+END_VALUE_FROM_NAMED_COMMENT
+
+  #+end_src
+
+  #+RESULTS:
+  :RESULTS:
+
+  #+NAME: a_named_comment
+  #+BEGIN_COMMENT
+  VALUE_FROM_NAMED_COMMENT
+  #+END_COMMENT
+
+  #+CALL: a_named_comment()
+
+  #+RESULTS:
+
+  #+begin_src sh :wrap (org-sbe a_named_comment)
+    echo "Does ~:wrap~ header allow dynamic values?"
+  #+end_src
+
+  #+RESULTS:
+  #+BEGIN_VALUE_FROM_NAMED_COMMENT
+  Does ~:wrap~ header allow dynamic values?
+  #+END_VALUE_FROM_NAMED_COMMENT
+  :END:
+
+  - Troubleshooting: What happens if don't use elisp ~(org-sbe )~ syntax, e.g. a_named_comment()
+
+    Answer: Same results as passing a string value.
+
+    #+begin_src org :exports code :results drawer replace
+
+      # Try 1 
+
+      ,#+begin_src sh :wrap a_named_comment()
+        echo "Does ~:wrap~ header allow dynamic values?"
+      ,#+end_src
+
+      ,#+RESULTS:
+      ,#+BEGIN_a_named_comment()
+      Does ~:wrap~ header allow dynamic values?
+      ,#+END_a_named_comment()
+
+      # Try 2
+
+      ,#+begin_src sh :wrap call_a_named_comment()
+            echo "Does ~:wrap~ header allow dynamic values?"
+      ,#+end_src
+
+      ,#+RESULTS:
+      ,#+BEGIN_call_a_named_comment()
+      Does ~:wrap~ header allow dynamic values?
+      ,#+END_call_a_named_comment()
+
+
+    #+end_src
+
+    #+RESULTS:
+    :RESULTS:
+
+    # Try 1 
+
+    #+begin_src sh :wrap a_named_comment()
+      echo "Does ~:wrap~ header allow dynamic values?"
+    #+end_src
+
+    #+RESULTS:
+    #+BEGIN_a_named_comment()
+    Does ~:wrap~ header allow dynamic values?
+    #+END_a_named_comment()
+
+    # Try 2
+
+    #+begin_src sh :wrap call_a_named_comment()
+          echo "Does ~:wrap~ header allow dynamic values?"
+    #+end_src
+
+    #+RESULTS:
+    #+BEGIN_call_a_named_comment()
+    Does ~:wrap~ header allow dynamic values?
+    #+END_call_a_named_comment()
+
+    :END:
+
+* Export Settings                                                  :noexport:
+#+TITLE: Using :wrap with Code Blocks 
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:nil arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.7a)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+#+SETUPFILE: theme-readtheorg-bks.setup

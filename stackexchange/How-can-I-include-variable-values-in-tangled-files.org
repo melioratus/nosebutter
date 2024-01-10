@@ -1,0 +1,22 @@
+
+#+BEGIN_SRC org
+  ,* Test
+  :PROPERTIES:
+  :header-args:  :var foo=222
+  :END:
+
+  ,#+NAME: foo-value
+  ,#+BEGIN_SRC elisp :exports none 
+    foo
+  ,#+END_SRC
+
+  ,#+RESULTS: foo-value
+  : 222
+
+  ,#+BEGIN_SRC text :noweb yes :tangle config-file 
+    I want to include value of «foo-value()» here.
+  ,#+END_SRC
+
+#+END_SRC
+
+

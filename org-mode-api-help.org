@@ -1,0 +1,246 @@
+** Parsing org code block with elisp
+*** ~:checkbox~ property value
+#+NAME: is-checked
+#+BEGIN_SRC org :results raw replace 
+  - [X] yes, I am checked
+#+END_SRC
+
+#+NAME: is-a-checkbox-on
+#+BEGIN_SRC elisp :results replace :var data=is-checked() :exports both
+  (org-element-map
+      (with-temp-buffer
+        (insert data)
+        (org-element-parse-buffer))
+      'item
+    (lambda (item) (eq (org-element-property :checkbox item) 'on))
+    nil t))
+#+END_SRC
+
+#+RESULTS: is-a-checkbox-on
+: t
+
+*** ~:raw-value~ property headline
+
+#+NAME: three-headlines
+#+BEGIN_SRC org
+  ,* level 1
+  ,** level 2
+  ,*** level 3
+#+END_SRC
+
+
+#+BEGIN_SRC elisp :results list replace :var data=three-headlines() :exports both 
+  (org-element-map
+      (with-temp-buffer
+        (insert data)
+        (org-element-parse-buffer))
+      '(headline)
+    (lambda (hl) (org-element-property :raw-value hl))
+    )
+#+END_SRC
+
+#+RESULTS:
+- level 1
+- level 2
+- level 3
+
+**** ~:name~ property value of src block
+
+#+NAME: named-src-blocks
+#+BEGIN_SRC org
+
+  ,#+NAME: src-block-a
+  ,#+BEGIN_SRC shell
+    echo "I'm SRC Block A"
+  ,#+END_SRC
+
+  ,#+NAME: src-block-b
+  ,#+BEGIN_SRC shell
+    echo "I'm SRC Block B"
+  ,#+END_SRC
+
+  ,#+NAME: src-block-c
+  ,#+BEGIN_SRC shell
+    echo "I'm SRC Block C"
+  ,#+END_SRC
+#+END_SRC
+
+
+#+BEGIN_SRC elisp :results replace :var data=named-src-blocks() :exports both 
+  (org-element-map
+      (with-temp-buffer
+        (insert data)
+        (org-element-parse-buffer))
+      '(src-block)
+    (lambda (x) (list (org-element-property :name x)))
+    )
+#+END_SRC
+
+#+RESULTS:
+| src-block-a |
+| src-block-b |
+| src-block-c |
+
+
+---------
+
+
+#+BEGIN_SRC elisp :results replace :var data=named-src-blocks() :exports both :var name="src-block-a"
+(let ((my-names (org-element-map
+      (with-temp-buffer
+        (insert data)
+        (org-element-parse-buffer))
+      '(src-block)
+    (lambda (x) (org-element-property :name x))
+    )))
+(if (member name my-names) name nil))
+#+END_SRC
+
+#+RESULTS:
+: src-block-a
+
+
+*** parsed values
+
+**** AST headlines
+
+#+BEGIN_SRC elisp :results code replace :var data=three-headlines() :exports both 
+  (with-temp-buffer
+    (insert data)
+    (org-element-parse-buffer))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC elisp
+(org-data nil
+	  (headline
+	   (:raw-value "level 1" :begin 1 :end 33 :pre-blank 0 :contents-begin 11 :contents-end 33 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 1 :title
+		       (#("level 1" 0 7
+			  (:parent #1)))
+		       :parent #0)
+	   (headline
+	    (:raw-value "level 2" :begin 11 :end 33 :pre-blank 0 :contents-begin 22 :contents-end 33 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 11 :title
+			(#("level 2" 0 7
+			   (:parent #2)))
+			:parent #1)
+	    (headline
+	     (:raw-value "level 3" :begin 22 :end 33 :pre-blank 0 :contents-begin nil :contents-end nil :level 3 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 22 :title
+			 (#("level 3" 0 7
+			    (:parent #3)))
+			 :parent #2)))))
+#+END_SRC
+
+
+**** AST Nested Lists
+
+#+NAME: nested-list
+#+BEGIN_SRC org
+  - level 1
+    - level 2
+      - level 3
+#+END_SRC
+
+
+#+BEGIN_SRC elisp :results code replace :var data=nested-list() :exports both 
+  (with-temp-buffer
+    (insert data)
+    (org-element-parse-buffer))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC elisp
+(org-data nil
+	  (section
+	   (:begin 1 :end 36 :contents-begin 1 :contents-end 36 :post-blank 0 :post-affiliated 1 :parent #0)
+	   (plain-list
+	    (:type unordered :begin 1 :end 36 :contents-begin 1 :contents-end 36 :structure
+		   ((1 0 "- " nil nil nil 36)
+		    (11 2 "- " nil nil nil 36)
+		    (23 4 "- " nil nil nil 36))
+		   :post-blank 0 :post-affiliated 1 :parent #1)
+	    (item
+	     (:bullet "- " :begin 1 :end 36 :contents-begin 3 :contents-end 36 :checkbox nil :counter nil :structure
+		      ((1 0 "- " nil nil nil 36)
+		       (11 2 "- " nil nil nil 36)
+		       (23 4 "- " nil nil nil 36))
+		      :post-blank 0 :post-affiliated 1 :tag nil :parent #2)
+	     (paragraph
+	      (:begin 3 :end 11 :contents-begin 3 :contents-end 11 :post-blank 0 :post-affiliated 3 :parent #3)
+	      #("level 1\n" 0 8
+		(:parent #4)))
+	     (plain-list
+	      (:type unordered :begin 11 :end 36 :contents-begin 11 :contents-end 36 :structure
+		     ((1 0 "- " nil nil nil 36)
+		      (11 2 "- " nil nil nil 36)
+		      (23 4 "- " nil nil nil 36))
+		     :post-blank 0 :post-affiliated 11 :parent #3)
+	      (item
+	       (:bullet "- " :begin 11 :end 36 :contents-begin 15 :contents-end 36 :checkbox nil :counter nil :structure
+			((1 0 "- " nil nil nil 36)
+			 (11 2 "- " nil nil nil 36)
+			 (23 4 "- " nil nil nil 36))
+			:post-blank 0 :post-affiliated 11 :tag nil :parent #4)
+	       (paragraph
+		(:begin 15 :end 23 :contents-begin 15 :contents-end 23 :post-blank 0 :post-affiliated 15 :parent #5)
+		#("level 2\n" 0 8
+		  (:parent #6)))
+	       (plain-list
+		(:type unordered :begin 23 :end 36 :contents-begin 23 :contents-end 36 :structure
+		       ((1 0 "- " nil nil nil 36)
+			(11 2 "- " nil nil nil 36)
+			(23 4 "- " nil nil nil 36))
+		       :post-blank 0 :post-affiliated 23 :parent #5)
+		(item
+		 (:bullet "- " :begin 23 :end 36 :contents-begin 29 :contents-end 36 :checkbox nil :counter nil :structure
+			  ((1 0 "- " nil nil nil 36)
+			   (11 2 "- " nil nil nil 36)
+			   (23 4 "- " nil nil nil 36))
+			  :post-blank 0 :post-affiliated 23 :tag nil :parent #6)
+		 (paragraph
+		  (:begin 29 :end 36 :contents-begin 29 :contents-end 36 :post-blank 0 :post-affiliated 29 :parent #7)
+		  #("level 3" 0 7
+		    (:parent #8)))))))))))
+#+END_SRC
+
+*** org source block as variable
+
+This shows how code block interprets org code block
+
+#+BEGIN_SRC org
+  ,#+NAME: nested-list
+  ,#+BEGIN_SRC org
+    - level 1
+      - level 2
+        - level 3
+  ,#+END_SRC
+
+  ,#+BEGIN_SRC elisp :var data=nested-list() :results pp replace :exports both 
+    data
+  ,#+END_SRC
+
+  ,#+RESULTS:
+  : "- level 1\n  - level 2\n    - level 3"
+  #  0123456789012345678901234567890123456
+#+END_SRC
+
+
+-------
+** =org-element-interpret-data=
+
+  [[http://emacs.stackexchange.com/questions/15152/most-common-data-structure-is-a-list][copied from emacs.stackexchange question]]
+  
+#+BEGIN_SRC emacs-lisp :results raw :exports both
+(org-element-interpret-data
+ '(headline (:title "Level Three Headline" :level 3)
+            (property-drawer nil ((node-property (:key "property1" :value "value1"))
+                                  (node-property (:key "property2" :value "value2"))))
+            (#("Some much longer content."))))
+#+END_SRC
+
+#+RESULTS:
+*** Level Three Headline
+:PROPERTIES:
+:property1: value1
+:property2: value2
+:END:
+Some much longer content.

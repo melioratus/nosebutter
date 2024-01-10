@@ -1,0 +1,53 @@
+# -*- mode: org; -*-
+
+
+#+NAME: ruby-times_2
+#+BEGIN_SRC ruby :tangle code-block-ruby.rb :var data='(1 2 3 4 5)
+  def times_2(data)
+    data.map{|d| d*2}
+  end
+
+  times_2(data)
+#+END_SRC
+
+#+RESULTS: ruby-times_2
+| 2 | 4 | 6 | 8 | 10 |
+
+
+#+NAME: data-table
+| Number |
+|--------|
+|      3 |
+|      4 |
+|      5 |
+|      6 |
+|      7 |
+
+#+NAME: ruby-times_2a
+#+BEGIN_SRC ruby :tangle code-block-ruby.rb :var data=data-table :colnames yes
+  def times_2a(data)
+    data.map{|d| [d[0]*2]}
+  end
+
+  times_2a(data)
+#+END_SRC
+
+#+RESULTS: ruby-times_2a
+| Number |
+|--------|
+|      6 |
+|      8 |
+|     10 |
+|     12 |
+|     14 |
+
+#+CALL: ruby-times_2a() :cache yes
+
+#+RESULTS[738cdfe03a38b7c2118c0ee4b9be67a51742d25e]:
+| Number |
+|--------|
+|      6 |
+|      8 |
+|     10 |
+|     12 |
+|     14 |

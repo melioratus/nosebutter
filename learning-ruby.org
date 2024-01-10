@@ -1,0 +1,233 @@
+* Learning Ruby
+
+http://www.sitepoint.com/functional-programming-techniques-with-ruby-part-ii/
+
+** =inject=
+
+*** Example - How to sum from 1 to 10 with =inject=
+
+#+BEGIN_QUOTE
+In functional programming, fold – also known variously as reduce, accumulate, aggregate, compress, or inject – refers to a family of higher-order functions that analyze a recursive data structure and recombine through use of a given combining operation the results of recursively processing its constituent parts, building up a return value. Typically, a fold is presented with a combining function, a top node of a data structure, and possibly some default values to be used under certain conditions. The fold then proceeds to combine elements of the data structure's hierarchy, using the function in a systematic way.[fn:1] Wikipedia - Fold (higher-order function)
+#+END_QUOTE
+
+#+name: example-sum-1-to-10-with-inject-ruby
+#+begin_src ruby
+(1..10).inject(&:+)
+#+end_src
+
+#+RESULTS: example-sum-1-to-10-with-inject-ruby
+: 55
+
+**** Reading
+
+   - http://stackoverflow.com/questions/710501/need-a-simple-explanation-of-the-inject-method
+   - http://en.wikipedia.org/wiki/Fold_%28higher-order_function%29
+   - http://stackoverflow.com/questions/9429819/what-is-the-functionality-of-operator-in-ruby
+   - http://stackoverflow.com/questions/1961030/ruby-ampersand-colon-shortcut
+   - http://stackoverflow.com/questions/1217088/what-does-mapname-mean-in-ruby
+   - http://en.wikipedia.org/wiki/Higher-order_function
+
+#+BEGIN_COMMENT
+There is another huge advantage of lazy evaluation. Look at this code:
+(1..100).select { |x| x % 3 == 0 }.select { |x| x % 4 == 0 }
+This code attempts to find all numbers between 1 and 100 that are divisible by both 3 and 4, but in the process iterates over the set of numbers twice! Lazy evaluation collapses all of the enumerator actions into a single iteration:
+
+(1..100).lazy.select { |x| x % 3 == 0 }.select { |x| x % 4 == 0 }.to_a
+This could dramatically speed up code where multiple filters are being applied to a collection. This collapsing of the enumerable chain works for any of the many methods defined on the Enumerable class, including but not limited to, #select, #map and #take.
+#+END_COMMENT
+
+** Fun with Arrays
+
+*** Playing around
+
+    #+BEGIN_SRC ruby :var data1='(("a") ("b") ("c")) :var data2='(("a" "e" "i") ("f" "b" "j") ("g" "c" "k") ("h" "l" "d")) :exports both
+      # data1
+      # data2
+      # data1.map{|d1| data2.map{|d2| d1 + d2}}
+      # data1.map{|d1| data2.map{|d2| d1 | d2}}
+      # data1.map{|d1| data2.map{|d2| d1 - d2}}
+      # data1.map{|d1| data2.map{|d2| d1 & d2}}
+      # data2.map{|d2| data1.map{|d1| d2 + d1}}
+      # data2.map{|d2| data1.map{|d1| d2 | d1}}
+      # data2.map{|d2| data1.map{|d1| d2 - d1}}
+       data2.map{|d2| data1.map{|d1| d2 & d1}}
+    #+END_SRC
+
+    #+RESULTS:
+    | (a) | nil | nil |
+    | nil | (b) | nil |
+    | nil | nil | (c) |
+    | nil | nil | nil |
+
+
+
+*** Use =include?= and =Regexp.new= to filter rows in array then change order of columns with =map=
+
+#+name: filter-table-rows-ruby
+#+header: :var data=""
+#+header: :var filter=""
+#+header: :var columns=""
+#+header: :var s_filter=""
+#+header: :var lop=""
+#+header: :results silent 
+#+begin_src ruby
+  # Bug: Adding =:colnames yes= breaks this code when =columns= variable is defined
+  # Note: =include?= does *exact match* not regular expression use =select= block for regexp 
+
+  # Required: Variables *must* be Ruby =Array= Class
+  data = Array(data) unless data.class.to_s == "Array"
+  data.reject!(&:empty?)
+
+  filter = Array(filter) unless filter.class.to_s == "Array"
+  filter.reject!(&:empty?)
+
+  s_filter = Array(s_filter) unless s_filter.class.to_s == "Array"
+  s_filter.reject!(&:empty?)
+
+  columns = Array(columns) unless columns.class.to_s == "Array"
+
+  # Feature: Columns - display all columns if not defined
+  columns = Array(0..data[0].count-1) if columns.empty?
+
+  # Feature: Use first row of data as column name, unknown column names will be removed.
+  columns.map!{|c| data[0].index(c) ? data[0].index(c) : Integer(c) rescue nil }.select!{|x| x}
+
+  # Feature: Logical OR filter array
+  data.select!{ |d| filter.map{ |f| d.include?(f) }.inject(&:|) } unless filter.empty?
+   
+  # Feature: Logical AND is default for s_filter array. Otherwise Logical OR is used.
+  s_lop = (lop.empty? or lop.to_s.upcase.eql?("AND"))? "&".to_sym : "|".to_sym 
+  data.select!{ |v|  s_filter.map{|i|  (v[i[0]] =~ Regexp.new(i[1]))? true : false }.inject(&s_lop)} unless s_filter.empty?
+  
+  data.map!{ |d| Array.new(columns.length){ |i| d.fetch(columns[i]) } } unless columns.empty?
+  data
+#+end_src
+
+#+CALL: filter-table-rows-ruby(data='(("a" "b" "c" "d" "x") ("e" "f" "g" "h" "x") ("i" "j" "k" "l" "x") ("a" "b" "c" "d" "y") ("e" "f" "g" "h" "y") ("i" "j" "k" "l" "y") ("a" "b" "c" "d" "z") ("e" "f" "g" "h" "z") ("i" "j" "k" "l" "z") ), columns='(0 4), s_filter='((0 "a|e") (4 "z")) ) :exports none 
+
+#+RESULTS:
+| a | z |
+| e | z |
+
+*** Do cartesian =product= of two arrays and use flatten  =flatten= 
+
+#+NAME: example-abc-table
+| a |
+| b |
+| c |
+
+#+NAME: example-def-table
+| d |
+| e |
+| f |
+
+
+#+NAME: example-cross-product-of-tables-ruby
+#+begin_src ruby :var data1=example-abc-table :var data2=example-def-table
+    
+  data1.flatten.product(data2.flatten)
+
+#+end_src
+
+#+RESULTS: example-cross-product-of-tables-ruby
+
+| a | d |
+| a | e |
+| a | f |
+| b | d |
+| b | e |
+| b | f |
+| c | d |
+| c | e |
+| c | f |
+
+*** Do Union =?=, Intersect =?= and Minus =?= on Arrays
+[[http://www.techotopia.com/index.php/Advanced_Ruby_Arrays#Intersection.2C_Union_and_Difference]]
+
+** Currying
+
+*** Explain Example Code using Literate Programming
+
+**** Original Example Code
+
+[[http://blog.daniellobato.me/2013/06/why-is-curry-not-popular-among-rubyists%EF%BB%BF%EF%BB%BF/]]
+
+#+begin_src ruby
+is_weekday = lambda {|day_of_week, time| time.wday == day_of_week}.curry
+
+sunday    = is_weekday[0]
+monday    = is_weekday[1]
+tuesday   = is_weekday[2]
+wednesday = is_weekday[3]
+thursday  = is_weekday[4]
+friday    = is_weekday[5]
+saturday  = is_weekday[6]
+
+case Time.now
+when sunday 
+  puts "Day of rest"
+when monday, tuesday, wednesday, thursday, friday
+  puts "Work"
+when saturday
+  puts "chores"
+end
+#+end_src
+
+** Use =inspect=
+
+*** Convert multiline string value in JSON
+
+    Use =inspect= to convert from multi-line string value into single-line value.
+
+**** Example 
+   
+   - Code to Generate Data File
+   
+     #+BEGIN_SRC ruby :file json-template1b-data.rb 
+      file_contents="#This is a multiline string.
+      Line A
+      Line \"B\"
+      Line_C =~ s/(abc)/\\1\\1/ 
+      "
+      data = <<-ORGSRC
+      @file_contents=#{file_contents.inspect}
+      ORGSRC
+      
+      data
+     #+END_SRC
+
+   - Code to Generate ERB File
+
+     #+BEGIN_SRC css  :file json-template1b.json.erb
+      {
+          "scriptBody": <%= @file_contents.inspect %>,
+          "runAsDaemon": "false",
+          "outputFile": ""
+      }
+     #+END_SRC
+
+   - ERB Command
+   
+     #+begin_src sh :results verbatim    :exports both :file junk54-json-template1a.json
+      erb -r ./json-template1b-data.rb ./json-template1b.json.erb
+     #+end_src
+
+    - Results
+    
+      #+begin_src js
+      {
+        "scriptBody": "#This is a multiline string.\nLine A\nLine \"B\"\nLine_C =~ s/(abc)/\\1\\1/ \n",
+        "runAsDaemon": "false",
+        "outputFile": ""
+      }
+      #+end_src
+      
+* Export Settings                                                  :noexport:
+#+OPTIONS:  f:t
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+
+* Footnotes
+
+[fn:1] http://en.wikipedia.org/wiki/Fold_%28higher-order_function%29
+

@@ -1,0 +1,23 @@
+#+OPTIONS: todo:t
+#+OPTIONS: f:t
+
+** Research
+*** Spelling
+**** Flyspell Mouse Settings
+
+     #+BEGIN_SRC elisp
+      (eval-after-load "flyspell"
+        '(progn
+           (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
+           (define-key flyspell-mouse-map [mouse-3] #'undefined)))
+     #+END_SRC
+     Source [fn:1]      
+*** Completion
+**** TODO Read about ~ispell-complete-word-interior-frag~ for word completion
+      - Using ~M-x company-mode~ and then ~M-x company-ispell~ provide similar feature.
+** General Purpose Code [0/0]
+*** TODO Return Default Value
+*** TODO Validate Input 
+*** TODO Conditional Append
+* Footnotes
+[fn:1] http://stackoverflow.com/a/10997845/951721

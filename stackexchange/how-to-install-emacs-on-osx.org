@@ -1,0 +1,53 @@
+#+OPTIONS: f:t
+
+Try the following[fn:1:https://stackoverflow.com/a/44094859/951721]
+
+1. Remove emacs
+
+  #+BEGIN_SRC shell
+   brew uninstall emacs
+  #+END_SRC
+
+2. Clean out any previously downloaded source files
+
+  #+BEGIN_SRC shell
+   brew cleanup
+  #+END_SRC
+
+3. Check your brew installation is OK
+
+  #+BEGIN_SRC shell
+   brew doctor
+  #+END_SRC
+
+4. Make sure your running the most recent brew
+
+  #+BEGIN_SRC shell
+    brew update
+  #+END_SRC
+
+5. Upgrade any brew stuff you have in case any of them are pre-requisites
+
+  #+BEGIN_SRC shell
+    brew upgrade
+  #+END_SRC
+
+6. Check for available options, if needed.
+
+  #+BEGIN_SRC shell
+   brew info emacs
+  #+END_SRC
+
+7. Install emacs
+
+  #+BEGIN_SRC shell
+   brew install emacs --with-cocoa --with-gnutls --with-librsvg --with-imagemagick@6
+  #+END_SRC
+
+  Watch for messages from brew. 
+
+8. Create soft links, if needed.
+
+  #+BEGIN_SRC shell
+    brew linkapps emacs
+  #+END_SRC

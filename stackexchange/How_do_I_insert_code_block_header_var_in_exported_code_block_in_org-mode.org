@@ -1,0 +1,273 @@
+* Answer - Try 2
+
+** Add Code to Org file
+*** expand-src-block
+
+#+NAME: make-expand-src-block
+#+BEGIN_SRC org :results drawer replace :exports code :tangle How_do_I_insert_code_block_header_var_in_exported_code_block_in_org-mode-f1.org
+
+  ,#+NAME: expand-src-block
+  ,#+BEGIN_SRC elisp :var block-name="" :var datum="" :var info="" :var lang="" :var body="" :exports none
+    (save-excursion
+      (org-babel-goto-named-src-block block-name)
+      (setq datum (org-element-at-point))
+      t)
+    (setq info (org-babel-get-src-block-info nil datum))
+    (setq lang (nth 0 info))
+    (setq body (org-babel-expand-src-block nil info))
+    (format "%s" body)
+  ,#+END_SRC
+
+#+END_SRC
+
+#+RESULTS: make-expand-src-block
+:RESULTS:
+
+#+NAME: expand-src-block
+#+BEGIN_SRC elisp :var block-name="" :var datum="" :var info="" :var lang="" :var body="" :exports none 
+  (save-excursion
+    (org-babel-goto-named-src-block block-name)
+    (setq datum (org-element-at-point))
+    t)
+  (setq info (org-babel-get-src-block-info nil datum))
+  (setq lang (nth 0 info))
+  (setq body (org-babel-expand-src-block nil info))
+  (format "%s" body)
+#+END_SRC
+:END:
+
+*** wrap-code                                                    :noexport:
+
+#+BEGIN_SRC org :results drawer replace :exports code 
+
+  ,#+NAME: wrap-code
+  ,#+BEGIN_SRC elisp :var body="code-body" :var lang="code-lang" :var params='(":exports" "both" ":results"  "verbatim")
+    (concat 
+     "#+begin_src "
+     lang " " (mapconcat (function (lambda (x) (format "%s" x))) params " ") " \n"
+     body
+     "\n#+end_src"
+     )
+  ,#+END_SRC
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+
+#+NAME: wrap-code
+#+BEGIN_SRC elisp :var body="code-body" :var lang="code-lang" :var params='(":exports" "both" ":results"  "verbatim")
+  (concat 
+   "#+begin_src "
+   lang " " (mapconcat (function (lambda (x) (format "%s" x))) params " ") " \n"
+   body
+   "\n#+end_src"
+   )
+#+END_SRC
+:END:
+
+** Usage Examples
+*** General
+
+**** Use ~noweb~ Syntax to Export Code with Variables
+1. Assign original code block a name using ~#+NAME:~.
+
+   #+BEGIN_SRC org :eval never
+     ,#+NAME: print-abc
+     ,#+BEGIN_SRC shell :var data="ABC"
+       echo -n $data
+     ,#+END_SRC
+   #+END_SRC
+
+2. Prevent original code block from exporting using ~:exports none~.
+
+   #+BEGIN_SRC org :eval never 
+     ,#+NAME: print-abc
+     ,#+BEGIN_SRC shell :var data="ABC" :exports none
+       echo -n $data
+     ,#+END_SRC
+   #+END_SRC
+
+3. Create new ~noweb~ code block under original block.
+
+   #+NAME: make-print-abc
+   #+BEGIN_SRC org :exports code
+     ,#+NAME: print-abc
+     ,#+BEGIN_SRC shell :var data="ABC" :exports none
+       echo -n $data
+     ,#+END_SRC
+ 
+     ,#+BEGIN_SRC shell :noweb yes :exports both 
+      <<expand-src-block(block-name="print-abc")>>
+     ,#+END_SRC
+    #+END_SRC
+
+   Exported output should be similar to the following:
+
+     #+NAME: print-abc
+     #+BEGIN_SRC shell :var data="ABC" :exports none
+       echo -n $data
+     #+END_SRC
+
+     #+BEGIN_SRC shell :noweb yes :exports both 
+      <<expand-src-block(block-name="print-abc")>>
+     #+END_SRC
+
+
+
+**** Use ~#+CALL:~ Syntax to Export Code with Variables         :noexport:
+
+> *Note:* Throws error still debugging
+
+*** Question Specific Use Case
+
+Added ~expand-src-block~ code, ~:exports none~ headers and ~noweb~ code blocks to your original example use case.
+  
+   #+BEGIN_SRC org :exports none :tangle How_do_I_insert_code_block_header_var_in_exported_code_block_in_org-mode-f1.org
+     ,* Export with variables
+     :PROPERTIES:
+     :header-args: :var status="not_finished"
+     :END:
+
+     ,#+NAME: example-table
+     | 1 |
+     | 2 |
+     | 3 |
+     | 4 |
+
+     Here we import a table.          
+     ,#+NAME: table-length
+     ,#+BEGIN_SRC R :var table=example-table :tangle "./export_var.R" :exports none
+     status <- "finished"
+     dim(table)
+     ,#+END_SRC
+
+     # Export the expanded code
+     ,#+BEGIN_SRC R :noweb yes :exports both 
+      <<expand-src-block(block-name="table-length")>>
+     ,#+END_SRC
+
+     Here we think we import a table
+     ,#+NAME: table-str-length
+     ,#+BEGIN_SRC R :var table="./filename_example-table.tsv" :tangle "./export_var.R" :exports none
+     length(table)
+     print(status)
+     ,#+END_SRC
+
+     # Export the expanded code
+     ,#+BEGIN_SRC R :noweb yes :exports both 
+      <<expand-src-block(block-name="table-str-length")>>
+     ,#+END_SRC
+
+     ,*** Some subcase
+
+     If I run with the data in ="./other_data.tsv"=
+     ,#+call: table-str-length[ :var table="./other_data.tsv"]()
+   #+END_SRC
+
+#+INCLUDE: How_do_I_insert_code_block_header_var_in_exported_code_block_in_org-mode-f1.org src org
+
+[[How_do_I_insert_code_block_header_var_in_exported_code_block_in_org-mode-f1.org]]
+
+Exported results should be similar to the following:
+
+#+INCLUDE: How_do_I_insert_code_block_header_var_in_exported_code_block_in_org-mode-f2.org src org
+
+[[How_do_I_insert_code_block_header_var_in_exported_code_block_in_org-mode-f2.org]]
+
+** Test Info
+
+
+----------
+
+#+BEGIN_SRC elisp :wrap QUOTE :exports results
+(format "This code was tested using  \n%s  \norg-mode version: %s " (version) (org-version))
+#+END_SRC
+
+** Export Settings                                                :noexport:
+
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:{} arch:headline
+#+OPTIONS: author:nil broken-links:nil c:nil creator:nil
+#+OPTIONS: d:t date:nil e:t email:nil f:t inline:t num:nil
+#+OPTIONS: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
+#+OPTIONS: timestamp:nil title:nil toc:nil todo:t |:t
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
+#+CREATOR: Emacs 24.5.1 (Org mode 9.0)
+
+
+* Answer - Try 1
+** Embed =org-babel-variable-assignments:R= call into =R= code block using =elisp= and =noweb=
+
+1. Create an =elisp= block without =:var= headers, e.g. /convert-data-to-R-code/, that returns results from =org-babel-variable-assignments:R= function.
+
+   #+NAME: make-example1
+   #+BEGIN_SRC org :results drawer replace :exports code 
+
+     ,#+NAME: convert-data-to-R-code
+     ,#+BEGIN_SRC elisp  :exports none 
+       (mapconcat 'identity (org-babel-variable-assignments:R params) " ")
+     ,#+END_SRC
+
+   #+END_SRC
+
+   #+RESULTS: make-example1
+   :RESULTS:
+
+   #+NAME: convert-data-to-R-code
+   #+BEGIN_SRC elisp  :exports none 
+     (mapconcat 'identity (org-babel-variable-assignments:R params) " ")
+   #+END_SRC
+   :END:
+
+2. Call =elisp= block, /convert-data-to-R-code/, in =R= code block during export via =noweb=
+
+   #+BEGIN_QUOTE
+    *Note:* Pass original =:var= headers inside square brackets =[]= to =elisp= code block, e.g. :var table="./filename_example-table.tsv"
+   #+END_QUOTE
+
+   #+NAME: make-example2
+   #+BEGIN_SRC org :results drawer replace :exports both 
+
+     ,#+BEGIN_SRC R :results replace output  :noweb yes 
+     <<convert-data-to-R-code[ :var table="./filename_example-table.tsv"]()>>
+     dim(table)
+     ,#+END_SRC
+
+   #+END_SRC
+
+     After exporting, the =R= code should contain missing variable assignments.
+   #+RESULTS: make-example2
+   :RESULTS:
+
+   #+BEGIN_SRC R :results replace output  :noweb yes :tangle yes 
+   <<convert-data-to-R-code[ :var table="./filename_example-table.tsv"]()>>
+   dim(table)
+   #+END_SRC
+   :END:
+
+
+----------
+
+#+BEGIN_SRC elisp :wrap QUOTE :exports results
+(format "This code was tested using  \n%s  \norg-mode version: %s " (version) (org-version))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_QUOTE
+This code was tested using  
+GNU Emacs 24.5.1 (x86_64-unknown-cygwin, GTK+ Version 3.14.13)
+ of 2015-06-23 on desktop-new  
+org-mode version: 9.0 
+#+END_QUOTE
+
+** Export Settings                                                :noexport:
+
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:{} arch:headline
+#+OPTIONS: author:nil broken-links:nil c:nil creator:nil
+#+OPTIONS: d:nil date:nil e:t email:nil f:t inline:t num:nil
+#+OPTIONS: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
+#+OPTIONS: timestamp:nil title:nil toc:nil todo:t |:t
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
+#+CREATOR: Emacs 24.5.1 (Org mode 9.0)

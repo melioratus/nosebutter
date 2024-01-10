@@ -1,0 +1,955 @@
+'name': 'Org-Mode Syntax - Draft'
+'scopeName': 'source.gmrtsts'
+'limitLineLength': false
+'fileTypes': [
+  'gmrtsts'
+  'org'
+]
+'patterns': [
+  {
+    'include': '#comment-line'
+  }
+  {
+    'include': '#comment-block'
+  }
+  {
+    'include': '#example-line'
+  }
+  {
+    'include': '#example-block'
+  }
+  {
+    'include': '#quote-block'
+  }
+  {
+    'include': '#verbatim'
+  }
+  {
+    'include': '#code'
+  }
+  {
+    'include': '#emphasis'
+  }
+  {
+    'include': '#code-block-shell'
+  }
+  {
+    'include': '#code-block-ruby'
+  }
+  {
+    'include': '#code-block-python'
+  }
+  {
+    'include': '#code-block-sql'
+  }
+  {
+    'include': '#code-block-css'
+  }
+  {
+    'include': '#keywords-line'
+  }
+  {
+    'include': '#babel-call'
+  }
+
+  {
+    'begin': '^(\\*{3})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-4.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+      {
+        'include': '#task-status'
+      }
+      {
+        'include': '#code'
+      }
+      {
+        'include': '#verbatim'
+      }
+      {
+        'include': '#emphasis'
+      }
+    ]
+  }
+
+  {
+    'begin': '^(\\*{4})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-5.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+
+  {
+    'begin': '^(\\*{5})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-6.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+
+  {
+    'begin': '^(\\*{6})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-7.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+  {
+    'begin': '^(-----BEGIN PGP MESSAGE-----)$'
+    'end': '^(-----END PGP MESSAGE-----)$'
+    'name': 'crypt.pgp.message.string.gmrtsts'
+    'beginCaptures':
+      '1':
+        'name': 'crypt.pgp.message.begin.string.gmrtsts'
+    'endCaptures':
+      '1':
+        'name': 'crypt.pgp.message.begin.string.gmrtsts'
+    'patterns': [
+    ]
+  }
+
+
+  {
+    'match': '^(\\s*\\d+\\.)(\\s+)(([\\\[])([ X-])([\\\]])(\\s))?'
+    'captures':
+      '1':
+        'name': 'variable.ordered.list.gmrtsts'
+      '2':
+        'name': 'punctuation.definition.list.space.gmrtsts'
+      '3':
+        'name': 'variable.checkbox.list.gmrtsts'
+      '4':
+        'name': 'punctuation.definition.checkbox.begin.list.gmrtsts'
+      '5':
+        'name': 'checkbox.string.gmrtsts'
+      '6':
+        'name': 'punctuation.definition.checkbox.end.list.gmrtsts'
+  }
+
+  {
+    'match': '^(\\s+[*]|\\s*[+-])(\\s+)(([\\\[])([ X-])([\\\]])(\\s))?'
+    'captures':
+      '1':
+        'name': 'variable.unordered.list.gmrtsts'
+      '2':
+        'name': 'punctuation.definition.list.space.gmrtsts'
+      '3':
+        'name': 'variable.checkbox.list.gmrtsts'
+      '4':
+        'name': 'punctuation.definition.checkbox.begin.list.gmrtsts'
+      '5':
+        'name': 'checkbox.string.gmrtsts'
+      '6':
+        'name': 'punctuation.definition.checkbox.end.list.gmrtsts'
+  }
+
+  {
+    'begin': '^(?:[ \\t]*)(\\|)'
+    'end': '(\\|)?(?:\\s*)$'
+    'beginCaptures':
+      '1':
+        'name': 'border.pipe.outer.gmrtsts'
+    'endCaptures':
+      '1':
+        'name': 'border.pipe.outer.gmrtsts'
+    'name': 'table.grmtsts'
+    'patterns': [
+      {
+        'match': '(-+(?=[-+|]))([+]?)'
+        'captures':
+          '1':
+            'name': 'border.header.gmrtsts'
+          '2':
+            'name': 'border.header.gmrtsts'
+      }
+      {
+        'match': '\\|'
+        'name': 'border.pipe.inner.gmrtsts'
+      }
+    ]
+  }
+
+  {
+    'begin': '^(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-1.gmrtsts'
+    'captures':
+      '1':
+        'name': 'markup.heading.marker.gmrtsts'
+      '2':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+      {
+        'include': '#task-status'
+      }
+      {
+        'include': '#code'
+      }
+      {
+        'include': '#verbatim'
+      }
+      {
+        'include': '#emphasis'
+      }
+    ]
+  }
+
+  {
+    'begin': '^(\\*{1})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-2.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.star-1.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+      {
+        'include': '#task-status'
+      }
+      {
+        'include': '#code'
+      }
+      {
+        'include': '#verbatim'
+      }
+      {
+        'include': '#emphasis'
+      }
+    ]
+  }
+
+  {
+    'begin': '^(\\*{2})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-3.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+      {
+        'include': '#task-status'
+      }
+      {
+        'include': '#code'
+      }
+      {
+        'include': '#verbatim'
+      }
+      {
+        'include': '#emphasis'
+      }
+    ]
+  }
+
+  {
+    'begin': '^(\\*{3})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-4.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+      {
+        'include': '#task-status'
+      }
+      {
+        'include': '#code'
+      }
+      {
+        'include': '#verbatim'
+      }
+      {
+        'include': '#emphasis'
+      }
+    ]
+  }
+
+  {
+    'begin': '^(\\*{4})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-5.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+
+  {
+    'begin': '^(\\*{5})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-6.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+
+  {
+    'begin': '^(\\*{6})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-7.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+  {
+    'begin': '^(\\*{7})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-8.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+  {
+    'begin': '^(\\*{8})(\\*{1})(\\s+)'
+    'end': '$'
+    'name': 'markup.heading.heading-9.gmrtsts'
+    'captures':
+      '1':
+        'name': 'leading-star.gmrtsts'
+      '2':
+        'name': 'markup.heading.marker.gmrtsts'
+      '3':
+        'name': 'markup.heading.space.gmrtsts'
+    'patterns': [
+        {
+          'include': '#task-status'
+        }
+        {
+          'include': '#code'
+        }
+        {
+          'include': '#verbatim'
+        }
+        {
+          'include': '#emphasis'
+        }
+      ]
+  }
+]
+'repository':
+
+  'comment-line':
+    'patterns': [
+      {
+        'begin': '^\\s*#\\s'
+        'end': '$'
+        'captures':
+          '0':
+            'name': 'punctuation.definition.comment.gmrtsts'
+        'name': 'comment.line.gmrtsts'
+      }
+    ]
+
+  'comment-block':
+    'patterns': [
+      {
+        'begin': '^(?i:\\s*#\\+BEGIN_COMMENT\\s*)'
+        'captures':
+          '0':
+            'name': 'punctuation.definition.comment.gmrtsts'
+        'end': '^(?i:\\s*#\\+END_COMMENT\\s*)'
+        'name': 'comment.block.gmrtsts'
+      }
+    ]
+
+  'example-line':
+    'patterns': [
+      {
+        'begin': '^\\s*:\\s'
+        'end': '$'
+        'captures':
+          '0':
+            'name': 'punctuation.definition.string.gmrtsts'
+        'name': 'string.unquoted.gmrtsts'
+      }
+    ]
+
+  'example-block':
+    'patterns':[
+        {
+          'begin': '^(?i:\\s*#\\+BEGIN_EXAMPLE\\s*)'
+          'beginCaptures':
+            '0':
+              'name': 'punctuation.definition.string.gmrtsts'
+          'end': '^(?i:\\s*#\\+END_EXAMPLE\\s*)'
+          'endCaptures':
+            '0':
+              'name': 'punctuation.definition.string.gmrtsts'
+          'contentName': 'string.unquoted.gmrtsts'
+        }
+    ]
+
+  'quote-block':
+    'patterns': [
+      {
+        'begin': '^(?i:\\s*#\\+BEGIN_QUOTE\\s*)'
+        'beginCaptures':
+          '0':
+            'name': 'punctuation.definition.quote.gmrtsts'
+        'end': '^(?i:\\s*#\\+END_QUOTE\\s*)'
+        'endCaptures':
+          '0':
+            'name': 'punctuation.definition.quote.gmrtsts'
+        'contentName': 'markup.quote.gmrtsts'
+        'patterns': [
+          {
+            'include': '#emphasis'
+          }
+        ]
+      }
+    ]
+
+  'unordered-list':
+    'patterns': [
+        {
+          'match': '^\\s+([*+-])(\\s+)'
+          'captures':
+            '1':
+              'name': 'punctuation.definition.item.gmrtsts'
+            '2':
+              'name': 'punctuation.definition.item.space.gmrtsts'
+        }
+    ]
+
+  'emphasis':
+    'patterns':[
+      {
+        'include': '#bold'
+      }
+      {
+        'include': '#italic'
+      }
+      {
+        'include': '#underline'
+      }
+      {
+        'include': '#strike-through'
+      }
+    ]
+
+  'task-status-todo':
+      'patterns': [
+          {
+            'match': '(?<=[\\\*]\\s)(TODO)\\b'
+            'name': 'constant.task.status.todo.gmrtsts'
+          }
+      ]
+
+  'task-status-done':
+      'patterns': [
+          {
+            'match': '(?<=[\\\*]\\s)(DONE)\\b'
+            'name': 'constant.task.status.done.gmrtsts'
+          }
+      ]
+
+  'task-status':
+      'patterns': [
+          {
+            'include': '#task-status-todo'
+          }
+          {
+            'include': '#task-status-done'
+          }
+      ]
+
+  'code':
+      'patterns': [
+        {
+          'begin': '(?<=^|[^\\w\\d\\~])(\\~)(?!$|\\~|\\s)'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'end': '(?<!^|\\s)(\\~)(?=$|[^\\w|\\d])'
+          'endCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'name': 'markup.raw.code.line.gmrtsts'
+
+        }
+    ]
+
+  'verbatim':
+      'patterns': [
+        {
+          'begin': '(?<=^|[^\\w\\d\\=])(\\=)(?!$|\\=|\\s)'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'end': '(?<!^|\\s)(\\=)(?=$|[^\\w|\\d])'
+          'endCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'name': 'markup.raw.verbatim.gmrtsts'
+        }
+    ]
+
+  'bold':
+      'patterns': [
+        {
+          'begin': '(?<=^|[^\\w\\d\\*])(\\*)(?!$|\\*|\\s)'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'end': '(?<!^|\\s)(\\*)(?=$|[^\\w|\\d])'
+          'endCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'name': 'markup.bold.gmrtsts'
+          'patterns': [
+            {
+              'match': '(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)'
+              'name': 'constant.character.entity.gmrtsts'
+              'captures':
+                '1':
+                  'name': 'punctuation.definition.entity.gmrtsts'
+                '3':
+                  'name': 'punctuation.definition.entity.gmrtsts'
+            }
+            {
+              'include': '#italic'
+            }
+            {
+              'include': '#underline'
+            }
+            {
+              'include': '#strike-through'
+            }
+            {
+              'include': '#code'
+            }
+            {
+              'include': '#verbatim'
+            }
+          ]
+      }
+    ]
+
+  'underline':
+    'patterns':[
+       {
+         'begin': '(?<=^|[^\\w\\d_])(_)(?!$|_|\\s)'
+         'beginCaptures':
+           '1':
+             'name': 'punctuation.definition.character.gmrtsts'
+         'end': '(?<!^|\\s)(_)(?=$|[^\\w|\\d])'
+         'endCaptures':
+           '1':
+             'name': 'punctuation.definition.character.gmrtsts'
+         'name': 'markup.underline.link.gmrtsts'
+         'patterns': [
+           {
+             'match': '(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)'
+             'name': 'constant.character.entity.gmrtsts'
+             'captures':
+               '1':
+                 'name': 'punctuation.definition.entity.gmrtsts'
+               '3':
+                 'name': 'punctuation.definition.entity.gmrtsts'
+           }
+          {
+             'include': '#bold'
+          }
+          {
+            'include': '#italic'
+          }
+          {
+            'include': '#strike-through'
+          }
+          {
+            'include': '#code'
+          }
+          {
+            'include': '#verbatim'
+          }
+         ]
+       }
+
+    ]
+  'italic':
+    'patterns':[
+      {
+          'begin': '(?<=^|[^\\w\\d\\/])(\\/)(?!$|\\/|\\s)'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'end': '(?<!^|\\s)(\\/)(?=$|[^\\w|\\d])'
+          'endCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'name': 'markup.italic.gmrtsts'
+          'patterns': [
+            {
+              'match': '(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)'
+              'name': 'constant.character.entity.gmrtsts'
+              'captures':
+                '1':
+                  'name': 'punctuation.definition.entity.gmrtsts'
+                '3':
+                  'name': 'punctuation.definition.entity.gmrtsts'
+            }
+            {
+              'include': '#bold'
+            }
+            {
+              'include': '#underline'
+            }
+            {
+              'include': '#strike-through'
+            }
+            {
+              'include': '#code'
+            }
+            {
+              'include': '#verbatim'
+            }
+          ]
+        }
+    ]
+
+  'strike-through':
+    'patterns': [
+        {
+          'begin': '(?<=^|[^\\w\\d#\\+])(\\+)(?!$|\\+|\\s)'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'end': '(?<!^|\\s)(\\+)(?=$|[^\\w|\\d])'
+          'endCaptures':
+            '1':
+              'name': 'punctuation.definition.character.gmrtsts'
+          'name': 'markup.strike.gmrtsts'
+          'patterns': [
+            {
+              'match': '(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)'
+              'name': 'constant.character.entity.gmrtsts'
+              'captures':
+                '1':
+                  'name': 'punctuation.definition.entity.gmrtsts'
+                '3':
+                  'name': 'punctuation.definition.entity.gmrtsts'
+            }
+            {
+              'include': '#bold'
+            }
+            {
+              'include': '#italic'
+            }
+            {
+              'include': '#underline'
+            }
+            {
+              'include': '#code'
+            }
+            {
+              'include': '#verbatim'
+            }
+          ]
+        }
+    ]
+
+  'code-block-shell':
+    'patterns':[
+        {
+          'begin': '^(\\s*#\\+BEGIN_SRC\\s+)(sh|shell|bash)(\\s+(:\\w+)(\\s+.+)?)*$'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.string.gmrtsts'
+            '2':
+              'name': 'code-block.type.gmrtsts'
+            '3':
+              'name': 'code-block.code-block-headers.gmrtsts'
+          'end': '^(?i)(\\s*#\\+END_SRC\\s*)$'
+          'endCaptures':
+            '0':
+              'name': 'punctuation.definition.string.gmrtsts'
+          'contentName': 'source.embedded.shell-gmrtsts'
+          'patterns':[
+            {
+              'include': 'source.shell-gmrtsts'
+            }
+          ]
+        }
+    ]
+
+  'code-block-ruby':
+    'patterns':[
+        {
+          'begin': '^(\\s*#\\+BEGIN_SRC\\s+)(ruby)(\\s+(:\\w+)(\\s+.+)?)*$'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.string.gmrtsts'
+            '2':
+              'name': 'code-block.type.gmrtsts'
+            '3':
+              'name': 'code-block.code-block-headers.gmrtsts'
+          'end': '^(?i)(\\s*#\\+END_SRC\\s*)$'
+          'endCaptures':
+            '0':
+              'name': 'punctuation.definition.string.gmrtsts'
+          'contentName': 'source.embedded.ruby-gmrtsts'
+          'patterns':[
+            {
+              'include': 'source.ruby'
+            }
+          ]
+        }
+    ]
+
+  'code-block-python':
+    'patterns':[
+        {
+          'begin': '^(\\s*#\\+BEGIN_SRC\\s+)(python)(\\s+(:\\w+)(\\s+.+)?)*$'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.string.gmrtsts'
+            '2':
+              'name': 'code-block.type.gmrtsts'
+            '3':
+              'name': 'code-block.code-block-headers.gmrtsts'
+          'end': '^(?i)(\\s*#\\+END_SRC\\s*)$'
+          'endCaptures':
+            '0':
+              'name': 'punctuation.definition.string.gmrtsts'
+          'contentName': 'source.embedded.python-gmrtsts'
+          'patterns':[
+            {
+              'include': 'source.python'
+            }
+          ]
+        }
+    ]
+
+  'code-block-sql':
+    'patterns':[
+        {
+          'begin': '^(\\s*#\\+BEGIN_SRC\\s+)(sql)(\\s+(:\\w+)(\\s+.+)?)*$'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.string.gmrtsts'
+            '2':
+              'name': 'code-block.type.gmrtsts'
+            '3':
+              'name': 'code-block.code-block-headers.gmrtsts'
+          'end': '^(?i)(\\s*#\\+END_SRC\\s*)$'
+          'endCaptures':
+            '0':
+              'name': 'punctuation.definition.string.gmrtsts'
+          'contentName': 'source.embedded.sql-gmrtsts'
+          'patterns':[
+            {
+              'include': 'source.sql'
+            }
+          ]
+        }
+    ]
+  'code-block-css':
+    'patterns':[
+        {
+          'begin': '^(\\s*#\\+BEGIN_SRC\\s+)(css)(\\s+(:\\w+)(\\s+.+)?)*$'
+          'beginCaptures':
+            '1':
+              'name': 'punctuation.definition.string.gmrtsts'
+            '2':
+              'name': 'code-block.type.gmrtsts'
+            '3':
+              'name': 'code-block.code-block-headers.gmrtsts'
+          'end': '^(?i)(\\s*#\\+END_SRC\\s*)$'
+          'endCaptures':
+            '0':
+              'name': 'punctuation.definition.string.gmrtsts'
+          'contentName': 'source.embedded.css-gmrtsts'
+          'patterns':[
+            {
+              'include': 'source.css'
+            }
+          ]
+        }
+    ]
+
+  'keywords-line':
+    'patterns': [
+      {
+        'begin': '^(\\s*#[+])(HEADER|NAME|PLOT|CAPTION|RESULTS[\\\[\\\]a-f0-9]*)(:)((\\s+)(.+))?'
+        'end': '$'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.keyword.gmrtsts'
+          '2':
+            'name': 'markup.function.keyword.key-name.gmrtsts'
+          '3':
+            'name': 'punctuation.definition.keyword.gmrtsts'
+          '5':
+            'name': 'punctuation.definition.keyword.space.gmrtsts'
+          '6':
+            'name': 'punctuation.definition.keyword.key-value.gmrtsts'
+        'name': 'markup.keyword.gmrtsts'
+      }
+    ]
+
+  'babel-call':
+    'patterns': [
+      {
+        'begin': '^(\\s*#[+])(CALL[\\\[\\\]a-zA-Z0-9,]*)(:)((\\s+)(.+))?'
+        'end': '$'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.keyword.gmrtsts'
+          '2':
+            'name': 'markup.function.keyword.key-name.gmrtsts'
+          '3':
+            'name': 'punctuation.definition.keyword.gmrtsts'
+          '5':
+            'name': 'punctuation.definition.keyword.space.gmrtsts'
+          '6':
+            'name': 'punctuation.definition.keyword.key-value.gmrtsts'
+        'name': 'markup.keyword.gmrtsts'
+      }
+    ]

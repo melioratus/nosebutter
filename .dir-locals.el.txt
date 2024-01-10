@@ -1,0 +1,21 @@
+;;; Directory Local Variables
+;;; For more information see (info "(emacs) Directory Variables")
+
+((nil
+  (eval setq org-capture-templates
+	'(("t" "Todo" entry
+	   (file+headline (file-truename (expand-file-name "./tasks-and-notes.org")) "Tasks")
+	   "* TODO %?\n  %i\n  %a\n" :empty-lines 1 :unnarrowed nil :kill-buffer t)
+	  ("j" "Journal: Today" entry
+	   (file+datetree (file-truename (expand-file-name "./tasks-and-notes.org")))
+	   "* %?\nEntered on %U\n  %i\n  %a\n" :empty-lines 1 :unnarrowed nil :kill-buffer t)
+	  ("J" "Journal: Pick Date" entry
+	   (file+datetree+prompt (file-truename (expand-file-name "./tasks-and-notes.org")))
+	   "* %?\n %i\n" :empty-lines 1 :unnarrowed nil :kill-buffer t)))
+  (eval setq org-default-notes-file
+	(file-truename (expand-file-name "./tasks-and-notes.org")))
+  (eval define-key global-map "\C-cc" 'org-capture)))
+
+
+
+

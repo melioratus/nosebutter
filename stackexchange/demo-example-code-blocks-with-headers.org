@@ -1,0 +1,143 @@
+* Try This
+
+I use this method to create code examples to write *How To Use =org-mode=* documentation.
+
+** Wrap Code Blocks within a New =org= Code Block
+
+1. Use =C-c= =C-v= =d= to create empty =org= code block then add =#+NAME:= and  =:exports code= headers to code block.
+   
+   #+begin_src org :exports code 
+     ,#+NAME: org-code-block-wrapper
+     ,#+begin_src org  :exports code 
+     ,#+end_src
+   #+end_src
+
+2. Edit =org= block.
+
+   *Important:* Click inside new =org= code block, add a blank line then use =C-c= single-quote to begin editing.
+
+   - Add new code blocks with headers
+     
+     e.g.
+     
+     #+begin_src org
+
+       ,#+NAME: echo-message
+       ,#+HEADER: :var MESSAGE="Hello from Shell Code Block!"
+       ,#+begin_src sh
+         echo $MESSAGE
+       ,#+end_src
+
+       ,#+NAME: display-message
+       ,#+HEADER: :var message="Hello from Ruby Code Block!"
+       ,#+begin_src ruby
+         message
+       ,#+end_src
+
+     #+end_src
+
+   - Use =C-c= single-quote to return to original buffer.
+      
+   - Use =C-x= =C-s= to save.
+
+When you're done editing, any =org-mode= syntax will escaped and ready for export.
+
+#+NAME: export-org2html
+#+begin_src org :exports code 
+
+  ,#+NAME: org-code-block-wrapper
+  ,#+begin_src org  :exports code
+
+    ,,#+NAME: echo-message
+    ,,#+HEADER: :var MESSAGE="Hello from Shell Code Block!"
+    ,,#+begin_src sh
+      echo $MESSAGE
+    ,,#+end_src
+
+    ,,#+NAME: display-message
+    ,,#+HEADER: :var message="Hello from Ruby Code Block!"
+    ,,#+begin_src ruby
+      message
+    ,,#+end_src
+
+  ,#+end_src
+
+#+end_src
+
+When exported, the code blocks with headers should be displayed.
+
+#+CALL: export-org2html() :results drawer replace   :exports none 
+
+#+RESULTS:
+:RESULTS:
+
+#+NAME: org-code-block-wrapper
+#+begin_src org  :exports code
+
+  ,#+NAME: echo-message
+  ,#+HEADER: :var MESSAGE="Hello from Shell Code Block!"
+  ,#+begin_src sh
+    echo $MESSAGE
+  ,#+end_src
+
+  ,#+NAME: display-message
+  ,#+HEADER: :var message="Hello from Ruby Code Block!"
+  ,#+begin_src ruby
+    message
+  ,#+end_src
+
+#+end_src
+:END:
+
+#+CALL: org-code-block-wrapper() :results org replace   :exports results
+
+*Note:* This method should work with most export formats including html. I wrote this answer in an org file then exported the answer as =markdown= to post it to stackexchange.
+
+** How To Extract the Original Blocks from within the =org= Block Wrapper.
+
+- Use add  =#+CALL:= syntax with =:results drawer replace=, then execute statment with =C-c= =C-c=
+   
+  This will put the original blocks inside a =drawer= where they executed with =C-c= =C-c=. 
+
+  #+begin_src org :exports code 
+
+    ,#+CALL: org-code-block-wrapper() :results drawer replace   :exports none 
+
+    ,#+RESULTS:
+    :RESULTS:
+
+    ,#+NAME: echo-message
+    ,#+HEADER: :var MESSAGE="Hello from Shell Code Block!"
+    ,#+begin_src sh
+      echo $MESSAGE
+    ,#+end_src
+
+    ,#+NAME: display-message
+    ,#+HEADER: :var message="Hello from Ruby Code Block!"
+    ,#+begin_src ruby
+      message
+    ,#+end_src
+    :END:
+
+ #+end_src
+
+*Code Tested with*  
+#+BEGIN_QUOTE
+=GNU Emacs 24.4.1 (x86_64-unknown-cygwin, GTK+ Version 3.10.9)=  \\
+=Org-Mode Version: 8.2.10=
+#+END_QUOTE
+
+#+TITLE: demo-example-code-blocks-with-headers
+#+DATE: <2015-10-16 Fri>
+#+AUTHOR: 
+#+EMAIL:
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:{} arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:nil todo:t |:t
+#+CREATOR: Emacs 24.4.1 (Org mode 8.2.10)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
