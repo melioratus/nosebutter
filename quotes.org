@@ -57,6 +57,12 @@ will not do this responsibly by yourself.[fn:1] ~ Kieran Healy
 Biology rather than physical engineering is the only realistic way to do things on a planetary scale.[fn:4] ~ Paul Dear at the MRC Laboratory of Molecular Biology in Cambridge.
 #+END_QUOTE
 
+* Thinking 
+
+#+BEGIN_QUOTE
+The cure for boredom is curiosity. There is no cure for curiosity.[fn:7] ~ Dorothy Parker
+#+END_QUOTE
+
 * Footnotes
 
 [fn:1] Healy, Kieran. "Choosing Your Workflow Applications."
@@ -71,3 +77,5 @@ https://www.newscientist.com/article/mg21628855.100-build-a-mars-base-with-a-box
 [fn:5] https://en.m.wikipedia.org/wiki/Technology_in_The_Hitchhiker%27s_Guide_to_the_Galaxy
 
 [fn:6] https://www.nature.com/articles/s44260-025-00031-5
+
+[fn:7] https://www.reddit.com/r/QuotesPorn/comments/1hdzdq5/the_cure_for_boredom_is_curiosity_there_is_no/?utm_source=share&utm_medium=mweb3x&utm_name=mweb3xcss&utm_term=1&utm_content=share_button
